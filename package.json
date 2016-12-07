@@ -1,0 +1,23 @@
+{
+  "name": "justpicksales",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "axios": "^0.15.3",
+    "axios-retry": "^1.1.0",
+    "body-parser": "~1.15.2",
+    "cheerio": "^0.22.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "ebay-api": "^1.13.1",
+    "express": "~4.14.0",
+    "jade": "~1.11.0",
+    "lodash": "^4.17.2",
+    "moment": "^2.17.1",
+    "morgan": "~1.7.0",
+    "serve-favicon": "~2.3.0"
+  }
+}

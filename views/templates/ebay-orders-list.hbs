@@ -1,0 +1,62 @@
+<script>
+    $body = $("body");
+    $(document).on({
+        ajaxStart: function () {
+            $body.addClass("loading");
+        },
+        ajaxComplete: function() { $body.removeClass("loading"); }
+    });
+    $.ajax({
+        url: '/searching',
+        data: {},
+        type: 'GET',
+        complete: function (data) {
+            let dataTemplate = Handlebars.compile($('#ebay-orders-list').html());
+            $body.removeClass("loading");
+            console.log(data.responseJSON.orders);
+            $('#result').html(dataTemplate({orders: data.responseJSON.orders}));
+        }
+    });
+    Handlebars.registerHelper('formatDate', function (data, options) {
+        let date = '';
+        if (data) date = moment(data).format('MM/DD/YYYY HH:mm:ss');
+        return date;
+    });
+</script>
+
+<script id="ebay-orders-list" type="text/x-handlebars-template">
+    {{#each orders}}
+        <tr>
+            <td>{{ OrderID }}</td>
+            <td>{{OrderStatus}}</td>
+            <td>
+                <table class="table">
+                    <tbody>
+                    {{#each Items}}
+                        <tr>
+                            <td><img src="{{Image}}" width="100px" height="100px" hspace="0px"></td>
+                            <td>
+                                <ul>
+                                    <li>
+                                        Item ID: {{ItemID}}
+                                    </li>
+                                    <li>
+                                        Title: {{Title}}
+                                    </li>
+                                    <li>
+                                        SKU: {{SKU}}
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </td>
+            <td>{{eBayPaymentStatus}}</td>
+            <td>{{Status}}</td>
+            <td>{{#formatDate PaidTime}}{{date}}{{/formatDate}}</td>
+            <td>{{Total}}</td>
+        </tr>
+    {{/each}}
+</script>

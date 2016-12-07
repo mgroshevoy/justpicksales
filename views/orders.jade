@@ -1,0 +1,15 @@
+extends layout
+block content
+    h1= title
+    table.table.table-hover
+        thead
+            th Order ID:
+            th Order Status:
+            th Items:
+            th Ebay Payment Status:
+            th Payment Status:
+            th Date paid:
+            th Total:
+        tbody#result
+            include templates/ebay-orders-list.hbs
+    .modal
