@@ -4,19 +4,32 @@
         ajaxStart: function () {
             $body.addClass("loading");
         },
-        ajaxComplete: function() { $body.removeClass("loading"); }
+//        ajaxComplete: function () {
+//            $body.removeClass("loading");
+//        }
     });
-    $.ajax({
-        url: '/searching',
-        data: {},
-        type: 'GET',
-        complete: function (data) {
-            let dataTemplate = Handlebars.compile($('#ebay-orders-list').html());
-            $body.removeClass("loading");
-            console.log(data.responseJSON.orders);
-            $('#result').html(dataTemplate({orders: data.responseJSON.orders}));
-        }
-    });
+    executeQuery();
+    function executeQuery() {
+        $.ajax({
+            url: '/searching',
+            dataType: 'json',
+            data: {},
+            type: 'GET',
+            success: function (data) {
+                console.log(data);
+ //               data = JSON.parse(data);
+   //             console.log(data);
+                if (data.inProgress) {
+                    setTimeout(executeQuery, 5000);
+                } else {
+                    let dataTemplate = Handlebars.compile($('#ebay-orders-list').html());
+                    $body.removeClass("loading");
+                    console.log(data.orders);
+                    $('#result').html(dataTemplate({orders: data.orders}));
+                }
+            }
+        });
+    }
     Handlebars.registerHelper('formatDate', function (data, options) {
         let date = '';
         if (data) date = moment(data).format('MM/DD/YYYY HH:mm:ss');
