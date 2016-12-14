@@ -103,7 +103,7 @@ function getOrdersFromEbay() {
                                     resolve(results);
                                 }).catch(error => {
                                 console.error(error);
-                                reject(error);
+                                reject(results);
                             });
                         }, i * 200);
                     }));
@@ -114,9 +114,9 @@ function getOrdersFromEbay() {
             console.error(error);
             reject(error);
         }).then(results => {
-           // console.log(results);
+            // console.log(results);
             console.log('Search is done!');
-            results = _.orderBy(results, ['PaidTime'], ['desc']);
+            results[results.length - 1] = _.orderBy(results[results.length - 1], ['PaidTime'], ['desc']);
             resolve(results[results.length - 1]);
         }).catch(error => {
             console.error(error);
