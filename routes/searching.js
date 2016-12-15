@@ -9,7 +9,6 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 
 let flag = false;
-//let arrayOrders = [];
 let orders;
 
 /**
@@ -17,7 +16,7 @@ let orders;
  * @param intPage
  * @returns {Promise}
  */
-function ebayRequest(intPage = 1) {
+function ebayGetOrders(intPage = 1) {
     return new Promise((resolve, reject) => {
         ebay.xmlRequest({
             serviceName: 'Trading',
@@ -52,20 +51,61 @@ function ebayRequest(intPage = 1) {
     });
 }
 
+/**
+ * Ebay API request to Trading:GetSellerList
+ * @param intPage
+ * @returns {Promise}
+ */
+function ebayGetSellerList(intPage = 1) {
+    return new Promise((resolve, reject) => {
+        ebay.xmlRequest({
+            serviceName: 'Trading',
+            opType: 'GetSellerList',
+
+            // app/environment
+            devId: process.env.EBAY_DEVID,
+            certId: process.env.EBAY_CERTID,
+            appId: process.env.EBAY_APPID,
+            sandbox: false,
+
+            // per user
+            authToken: process.env.EBAY_AUTHTOKEN,
+
+            params: {
+                StartTimeFrom: moment().subtract(120, 'days').toISOString(),
+                StartTimeTo: moment().toISOString(),
+                // EndTimeFrom: moment().subtract(120, 'days').toISOString(),
+                // EndTimeTo: moment().toISOString(),
+                Sort: 1,
+                GranularityLevel: 'Coarse',
+                Pagination: {
+                    EntriesPerPage: 200,
+                    PageNumber: intPage
+                }
+            }
+        }, function (error, results) {
+            if (error) {
+                console.error(error);
+                reject(error);
+            }
+            resolve(results);
+        });
+    });
+}
 
 function getOrdersFromEbay() {
-    let i = 1, promises = [], arrayOrders = [];
+    let i = 1, promises = [], arrayOfOrders = [], arrayOfResults = [], arrayOfSellerList = [];
     return new Promise((resolve, reject) => {
-        ebayRequest().then((results) => {
-            arrayOrders.push(results);
+        ebayGetOrders().then(results => {
+            arrayOfOrders.push(results);
             for (i = 2; i <= results.PaginationResult.TotalNumberOfPages; i++) {
-                promises.push(ebayRequest(i));
+                promises.push(ebayGetOrders(i));
             }
             return Promise.all(promises);
-        }).then((results) => {
+        }).then(results => {
             let res = [];
-            arrayOrders = _.concat(arrayOrders, results);
-            _.forEach(arrayOrders, function (o) {
+            arrayOfOrders = _.concat(arrayOfOrders, results);
+            _.forEach(arrayOfOrders, function (o) {
                 _.forEach(o.Orders, function (order) {
                     res.push({
                         OrderID: order.OrderID,
@@ -89,13 +129,43 @@ function getOrdersFromEbay() {
         }).catch(error => {
             console.error(error);
             reject(error);
+        }).then(result => {
+            return new Promise(resolve => {
+                arrayOfResults = _.clone(result);
+                ebayGetSellerList().then(results => {
+                    arrayOfSellerList = _.concat(arrayOfSellerList, results.Items);
+                    let promises = [];
+                    for (i = 2; i <= results.PaginationResult.TotalNumberOfPages; i++) {
+                        promises.push(ebayGetSellerList(i));
+                    }
+                    resolve(Promise.all(promises));
+                });
+            });
+        }).then(results => {
+            let element;
+            _.forEach(results, function (page) {
+                arrayOfSellerList = _.concat(arrayOfSellerList, page.Items);
+            });
+            console.log(arrayOfSellerList);
+            _.forEach(arrayOfResults, function (o, i) {
+                _.forEach(o.Items, function (item, j) {
+                    element = _.findIndex(arrayOfSellerList, ['ItemID', arrayOfResults[i].Items[j].ItemID]);
+//                    console.log(arrayOfResults[i].Items[j].ItemID);
+                    if (element != -1) {
+                        arrayOfResults[i].Items[j].Image = arrayOfSellerList[element].PictureDetails.GalleryURL;
+//                        console.log(arrayOfResults[i].Items[j].Image);
+                    }
+                });
+            });
+            return arrayOfResults;
         }).then(results => {
             let promises = [];
             _.forEach(results, function (o, i) {
                 _.forEach(o.Items, function (item, j) {
-                    promises.push(new Promise((resolve, reject) => {
-                        //                        axiosRetry(axios, {retries: 3});
-                        setTimeout(function () {
+                    if (!_.isString(results[i].Items[j].Image))
+                        promises.push(new Promise((resolve, reject) => {
+                            //                        axiosRetry(axios, {retries: 3});
+                            // setTimeout(function () {
                             axios.get("http://cgi.ebay.com/ws/eBayISAPI.dll?ViewItem&item=" + item.ItemID)
                                 .then((response) => {
                                     $ = cheerio.load(response.data);
@@ -105,8 +175,8 @@ function getOrdersFromEbay() {
                                 console.error(error);
                                 reject(results);
                             });
-                        }, i * 200);
-                    }));
+                            // }, i * 200);
+                        }));
                 })
             });
             return Promise.all(promises);
