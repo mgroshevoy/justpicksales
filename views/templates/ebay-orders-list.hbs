@@ -15,11 +15,16 @@
             dataType: 'json',
             data: {},
             type: 'GET',
-            statusCode: {
-                503: function() {
-                    setTimeout(executeQuery, 5000);
-                }
+            timeout: 20000,
+            error: function(error) {
+                console.log(error);
+                if (error.statusText === 'timeout') setTimeout(executeQuery, 5000);
             },
+//            statusCode: {
+//                503: function() {
+//                    setTimeout(executeQuery, 5000);
+//                }
+//            },
             success: function (data) {
                 console.log(data);
  //               data = JSON.parse(data);
