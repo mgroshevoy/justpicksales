@@ -16,6 +16,7 @@ fs.isDir = function (dpath) {
     try {
         return fs.lstatSync(dpath).isDirectory();
     } catch (e) {
+        console.log('Dir doesnt exist');
         return false;
     }
 };
