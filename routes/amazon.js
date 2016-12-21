@@ -48,9 +48,9 @@ function getAmazonOrders() {
                 //     mode: 'detach'
                 // },
                 // show: true,
-                // paths: {
-                //     downloads: csvDir
-                // }
+                paths: {
+                    downloads: csvDir
+                }
             });
 
             nightmare.on('download', function (state, downloadItem) {
