@@ -44,13 +44,13 @@ function getAmazonOrders() {
             resolve(loadCSV(getMostRecentFileName(csvDir)));
         } else {
             var nightmare = new Nightmare({
-                openDevTools: {
-                    mode: 'detach'
-                },
-                show: true,
-                paths: {
-                    downloads: csvDir
-                }
+                // openDevTools: {
+                //     mode: 'detach'
+                // },
+                // show: true,
+                // paths: {
+                //     downloads: csvDir
+                // }
             });
 
             nightmare.on('download', function (state, downloadItem) {
