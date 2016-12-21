@@ -34,7 +34,7 @@ if (!fs.isDir('./amazonorders')) {
 
 var csvDir = path.resolve('./amazonorders') || '';
 
-
+console.log('CSV= 'csvDir);
 //Order Date,Order ID,Title,Category,ASIN/ISBN,UNSPSC Code,Website,Release Date,Condition,Seller,Seller Credentials,List Price Per Unit,Purchase Price Per Unit,Quantity,Payment Instrument Type,Purchase Order Number,PO Line Number,Ordering Customer Email,Shipment Date,Shipping Address Name,Shipping //Address Street 1,Shipping Address Street 2,Shipping Address City,Shipping Address State,Shipping Address Zip,Order Status,Carrier Name & Tracking Number,Item Subtotal,Item Subtotal Tax,Item Total,Tax Exemption Applied,Tax Exemption Type,Exemption Opt-Out,Buyer Name,Currency,Group Name
 
 function getAmazonOrders() {
@@ -42,44 +42,44 @@ function getAmazonOrders() {
         if (isReportReady()) {
             resolve(loadCSV(getMostRecentFileName(csvDir)));
         } else {
-            var nightmare = new Nightmare({
-                openDevTools: {
-                    mode: 'detach'
-                },
-                show: true,
-                paths: {
-                    downloads: csvDir
-                }
-            });
-
-            nightmare.on('download', function (state, downloadItem) {
-                if (state == 'started') {
-                    objFile = downloadItem;
-                    nightmare.emit('download', downloadItem);
-                }
-            });
-
-            nightmare
-                .downloadManager()
-                .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
-                .goto('https://www.amazon.com/gp/b2b/reports?')
-                .wait()
-                .type('form [name=email]', email)
-                .wait()
-                .type('form [name=password]', password)
-                .wait()
-                .click('#signInSubmit')
-                .wait('#report-last30Days')
-                .click('#report-last30Days')
-                .wait()
-                .click('#report-confirm')
-                .wait()
-                .waitDownloadsComplete()
-                .end()
-                .then(function () {
-//        console.log(objFile.filename);
-                    resolve(loadCSV(objFile.filename));
-                });
+//             var nightmare = new Nightmare({
+//                 openDevTools: {
+//                     mode: 'detach'
+//                 },
+//                 show: true,
+//                 paths: {
+//                     downloads: csvDir
+//                 }
+//             });
+//
+//             nightmare.on('download', function (state, downloadItem) {
+//                 if (state == 'started') {
+//                     objFile = downloadItem;
+//                     nightmare.emit('download', downloadItem);
+//                 }
+//             });
+//
+//             nightmare
+//                 .downloadManager()
+//                 .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
+//                 .goto('https://www.amazon.com/gp/b2b/reports?')
+//                 .wait()
+//                 .type('form [name=email]', email)
+//                 .wait()
+//                 .type('form [name=password]', password)
+//                 .wait()
+//                 .click('#signInSubmit')
+//                 .wait('#report-last30Days')
+//                 .click('#report-last30Days')
+//                 .wait()
+//                 .click('#report-confirm')
+//                 .wait()
+//                 .waitDownloadsComplete()
+//                 .end()
+//                 .then(function () {
+// //        console.log(objFile.filename);
+//                     resolve(loadCSV(objFile.filename));
+//                 });
         }
     });
 }
