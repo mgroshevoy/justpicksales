@@ -1,0 +1,24 @@
+extends layout
+block content
+    .row
+        .col-md-5
+            h1= title
+        .col-md-3
+            .captcha
+        .col-md-4
+            //form.form-inline
+            //    input.form-control#textCaptcha(type="text")
+            //    button.btn.btn-primary#buttonOK(type="submit") OK
+    table.table.table-hover
+        thead
+            th Order Date:
+            th Order ID:
+            th Title:
+            th ASIN/ISBN:
+            th Shipment Date:
+            th Quantity:
+            th Purchase Price Per Unit:
+            th Item Total:
+        tbody#result
+            include templates/amazon-orders-list.hbs
+    .modal

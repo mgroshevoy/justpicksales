@@ -1,0 +1,80 @@
+<script>
+    executeQuery();
+    function executeQuery() {
+        $.ajax({
+            url: '/amazon/search',
+//            dataType: 'json',
+//            data: {},
+            type: 'GET',
+//            timeout: 20000,
+            error: function (error) {
+                console.log(error);
+            },
+            success: function (data) {
+                console.log(data);
+                let dataTemplate = Handlebars.compile($('#amazon-orders-list').html());
+                $('#result').html(dataTemplate({orders: data}));
+            }
+        });
+    }
+
+    //    $('form').submit(function (event) {
+    //        var captcha = $('#textCaptcha').val();
+    //        alert(captcha);
+    //        $.ajax({
+    //            url: '/amazon/search',
+    //            dataType: 'json',
+    //            data: {captcha: captcha},
+    //            type: 'GET'//,
+    //       //     timeout: 20000,
+    //        });
+    //    });
+    //    executeQuery();
+    //    function executeQuery() {
+    //        $.ajax({
+    //            url: '/amazon/search',
+    //            dataType: 'json',
+    //            data: {},
+    //            type: 'GET',
+    //            timeout: 20000,
+    //            error: function (error) {
+    //                console.log(error);
+    //            },
+    //            success: function (data) {
+    //                console.log(data);
+    //                if (data.status == 'LoadingCaptcha') {
+    //                    setTimeout(executeQuery, 5000);
+    //                } else {
+    //                    let dataTemplate = Handlebars.compile($('#captcha').html());
+    //                    $('.captcha').html(dataTemplate({captcha: data.captcha}));
+    //                }
+    //            }
+    //        });
+    //    }
+</script>
+<script id="captcha" type="text/x-handlebars-template">
+    <img src="{{captcha}}">
+</script>
+<script id="amazon-orders-list" type="text/x-handlebars-template">
+
+    th Order Date:
+    th Order ID:
+    th Title:
+    th ASIN/ISBN:
+    th Shipment Date:
+    th Quantity:
+    th Purchase Price Per Unit:
+    th Item Total:
+    {{#each orders}}
+        <tr>
+            <td>{{ 'Order Date' }}</td>
+            <td>{{ 'Order ID' }}</td>
+            <td>{{ 'Title' }}</td>
+            <td>{{ 'ASIN/ISBN' }}</td>
+            <td>{{ 'Shipment Date' }}</td>
+            <td>{{ 'Quantity' }}</td>
+            <td>{{ 'Purchase Price Per Unit' }}</td>
+            <td>{{ 'Item Total' }}</td>
+        </tr>
+    {{/each}}
+</script>

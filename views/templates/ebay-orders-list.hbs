@@ -11,14 +11,14 @@
     executeQuery();
     function executeQuery() {
         $.ajax({
-            url: '/searching',
+            url: '/orders/search',
             dataType: 'json',
             data: {},
             type: 'GET',
             timeout: 20000,
             error: function(error) {
                 console.log(error);
-                if (error.statusText === 'timeout') setTimeout(executeQuery, 5000);
+                    if (error.statusText === 'timeout') setTimeout(executeQuery, 5000);
             },
 //            statusCode: {
 //                503: function() {
