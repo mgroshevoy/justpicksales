@@ -43,44 +43,44 @@ function getAmazonOrders() {
         if (isReportReady()) {
             resolve(loadCSV(getMostRecentFileName(csvDir)));
         } else {
-//             var nightmare = new Nightmare({
-//                 openDevTools: {
-//                     mode: 'detach'
-//                 },
-//                 show: true,
-//                 paths: {
-//                     downloads: csvDir
-//                 }
-//             });
-//
-//             nightmare.on('download', function (state, downloadItem) {
-//                 if (state == 'started') {
-//                     objFile = downloadItem;
-//                     nightmare.emit('download', downloadItem);
-//                 }
-//             });
-//
-//             nightmare
-//                 .downloadManager()
-//                 .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
-//                 .goto('https://www.amazon.com/gp/b2b/reports?')
-//                 .wait()
-//                 .type('form [name=email]', email)
-//                 .wait()
-//                 .type('form [name=password]', password)
-//                 .wait()
-//                 .click('#signInSubmit')
-//                 .wait('#report-last30Days')
-//                 .click('#report-last30Days')
-//                 .wait()
-//                 .click('#report-confirm')
-//                 .wait()
-//                 .waitDownloadsComplete()
-//                 .end()
-//                 .then(function () {
-// //        console.log(objFile.filename);
-//                     resolve(loadCSV(objFile.filename));
-//                 });
+            var nightmare = new Nightmare({
+                openDevTools: {
+                    mode: 'detach'
+                },
+                show: true,
+                paths: {
+                    downloads: csvDir
+                }
+            });
+
+            nightmare.on('download', function (state, downloadItem) {
+                if (state == 'started') {
+                    objFile = downloadItem;
+                    nightmare.emit('download', downloadItem);
+                }
+            });
+
+            nightmare
+                .downloadManager()
+                .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
+                .goto('https://www.amazon.com/gp/b2b/reports?')
+                .wait()
+                .type('form [name=email]', email)
+                .wait()
+                .type('form [name=password]', password)
+                .wait()
+                .click('#signInSubmit')
+                .wait('#report-last30Days')
+                .click('#report-last30Days')
+                .wait()
+                .click('#report-confirm')
+                .wait()
+                .waitDownloadsComplete()
+                .end()
+                .then(function () {
+//        console.log(objFile.filename);
+                    resolve(loadCSV(objFile.filename));
+                });
         }
     });
 }
@@ -110,7 +110,7 @@ function loadCSV(strFileName) {
 
 function isReportReady() {
     var lastFileName = getMostRecentFileName(csvDir);
-    if (lastFileName === null && lastFileName === '.gitkeep') return false;
+    if (lastFileName === null || lastFileName === '.gitkeep') return false;
     var lastFileDate = fs.statSync(path.join(csvDir, lastFileName)).ctime;
     return moment().isSame(moment(lastFileDate), 'day');
 }
