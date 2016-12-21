@@ -110,7 +110,7 @@ function loadCSV(strFileName) {
 
 function isReportReady() {
     var lastFileName = getMostRecentFileName(csvDir);
-    if (lastFileName === null) return false;
+    if (lastFileName === null && lastFileName === '.gitkeep') return false;
     var lastFileDate = fs.statSync(path.join(csvDir, lastFileName)).ctime;
     return moment().isSame(moment(lastFileDate), 'day');
 }
