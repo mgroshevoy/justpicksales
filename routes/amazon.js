@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 var fs = require('fs');
@@ -35,7 +36,7 @@ if (!fs.isDir('./amazonorders')) {
 
 var csvDir = path.resolve('./amazonorders') || '';
 
-console.log('CSV= '+csvDir);
+console.log('CSV= ' + csvDir);
 //Order Date,Order ID,Title,Category,ASIN/ISBN,UNSPSC Code,Website,Release Date,Condition,Seller,Seller Credentials,List Price Per Unit,Purchase Price Per Unit,Quantity,Payment Instrument Type,Purchase Order Number,PO Line Number,Ordering Customer Email,Shipment Date,Shipping Address Name,Shipping //Address Street 1,Shipping Address Street 2,Shipping Address City,Shipping Address State,Shipping Address Zip,Order Status,Carrier Name & Tracking Number,Item Subtotal,Item Subtotal Tax,Item Total,Tax Exemption Applied,Tax Exemption Type,Exemption Opt-Out,Buyer Name,Currency,Group Name
 
 function getAmazonOrders() {
@@ -44,10 +45,10 @@ function getAmazonOrders() {
             resolve(loadCSV(getMostRecentFileName(csvDir)));
         } else {
             var nightmare = new Nightmare({
-                // openDevTools: {
-                //     mode: 'detach'
-                // },
-                // show: true,
+                openDevTools: {
+                    mode: 'detach'
+                },
+                show: true,
                 paths: {
                     downloads: csvDir
                 }
@@ -78,7 +79,6 @@ function getAmazonOrders() {
                 .waitDownloadsComplete()
                 .end()
                 .then(function () {
-//        console.log(objFile.filename);
                     resolve(loadCSV(objFile.filename));
                 });
         }
@@ -91,14 +91,14 @@ function getAmazonOrders() {
  * @returns {Promise}
  */
 function loadCSV(strFileName) {
-    return new Promise((resolve,reject) => {
+    return new Promise((resolve, reject) => {
         var parser = parse({
             delimiter: ',',
             columns: true
         }, function (err, data) {
             if (err) {
                 console.error(err);
-                resolve([{'Order Date':'No data'}]);
+                resolve([{'Order Date': 'No data'}]);
             }
             console.log(path.join(csvDir, strFileName));
             //console.log(data);
@@ -136,11 +136,6 @@ router.get('/search', function (req, res, next) {
         console.log(result);
         res.send(result);
     });
-    // authAmazon(req).then(result => {
-    //     res.send(result);
-    //     if (req.query) {
-    //     }
-    // });
 });
 
 /* GET Amazon orders page. */
