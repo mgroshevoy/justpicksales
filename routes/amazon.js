@@ -8,11 +8,19 @@ var parse = require('csv-parse');
 var moment = require('moment');
 var Nightmare = require('nightmare');
 require('nightmare-download-manager')(Nightmare);
+var MongoClient = require('mongodb').MongoClient
+    , assert = require('assert');
 
 var email = process.env.AMAZON_EMAIL;
 var password = process.env.AMAZON_PASS;
 var objFile;
 
+
+/**
+ * Check if Dir exists
+ * @param dpath
+ * @returns {boolean}
+ */
 fs.isDir = function (dpath) {
     try {
         return fs.lstatSync(dpath).isDirectory();
@@ -22,6 +30,10 @@ fs.isDir = function (dpath) {
     }
 };
 
+/**
+ * Create Dir
+ * @param dirname
+ */
 fs.mkdirp = function (dirname) {
     dirname = path.normalize(dirname).split(path.sep);
     dirname.forEach((sdir, index) => {
@@ -36,7 +48,7 @@ if (!fs.isDir('./amazonorders')) {
 
 var csvDir = path.resolve('./amazonorders') || '';
 
-console.log('CSV= ' + csvDir);
+//console.log('CSV= ' + csvDir);
 //Order Date,Order ID,Title,Category,ASIN/ISBN,UNSPSC Code,Website,Release Date,Condition,Seller,Seller Credentials,List Price Per Unit,Purchase Price Per Unit,Quantity,Payment Instrument Type,Purchase Order Number,PO Line Number,Ordering Customer Email,Shipment Date,Shipping Address Name,Shipping //Address Street 1,Shipping Address Street 2,Shipping Address City,Shipping Address State,Shipping Address Zip,Order Status,Carrier Name & Tracking Number,Item Subtotal,Item Subtotal Tax,Item Total,Tax Exemption Applied,Tax Exemption Type,Exemption Opt-Out,Buyer Name,Currency,Group Name
 
 function getAmazonOrders() {
@@ -80,6 +92,10 @@ function getAmazonOrders() {
                 .end()
                 .then(function () {
                     resolve(loadCSV(objFile.filename));
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    resolve({error:error});
                 });
         }
     });
@@ -146,61 +162,3 @@ router.get('/', function (req, res, next) {
 });
 
 module.exports = router;
-
-
-// var browser = new Browser({
-// debug: true,
-// userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
-// });
-// var img = null;
-
-// function authAmazon(req) {
-//     var startURL = 'https://www.amazon.com/';
-//     var refreshLink;
-//     var email = 'mbg@rambler.ru';
-//     var password = 'egorka@&)$';
-
-// console.log(browser.cookies);
-// console.log(req.query);
-// return new Promise(resolve => {
-//     if (req.query.captcha) {
-//         console.log(req.query.captcha);
-//         //browser.fill('email', email);
-//         browser.fill('password', password);
-//         browser.fill('guess', req.query.captcha);
-//         browser.pressButton('#signInSubmit', function () {
-//             console.log('Authorized!');
-//             console.log(browser.html());
-//             resolve(browser.html());
-//         });
-//     }
-//     if (browser.cookies.length == 0) {
-//         browser.visit(startURL, function () {
-//             browser.clickLink('#nav-tools>a', function () {
-//                 browser.fill('email', email);
-//                 browser.fill('password', password);
-//                 browser.pressButton('#signInSubmit', function () {
-//                     img = browser.querySelector('img#auth-captcha-image');
-//                     if (img === null) {
-//                         console.log('Authorized!');
-//                         console.log(browser.html());
-//                         resolve(browser.html());
-//                     } else {
-//                         refreshLink = browser.querySelector('a#auth-captcha-refresh-link');
-//                         console.log(img.src);
-//                         resolve({captcha: img.src});
-//                         //browser.fill('guess', captcha);
-//                     }
-//                 });
-//             });
-//         });
-//     } else {
-//         if (img === null) {
-//             resolve({status: 'LoadingCaptcha'});
-//         } else {
-//             console.log(img.src);
-//             resolve({captcha: img.src});
-//         }
-//     }
-// });
-// }
