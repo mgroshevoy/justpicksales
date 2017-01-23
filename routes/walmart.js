@@ -93,10 +93,10 @@ router.get('/search', function (req, res, next) {
     if (!flag) {
         var arrayOfOrders = [];
         var nightmare = new Nightmare({
-            openDevTools: {
-                mode: 'detach'
-            },
-            show: true,
+//            openDevTools: {
+//                mode: 'detach'
+//            },
+//            show: true,
             webPreferences: {
                 webSecurity: false
             }
