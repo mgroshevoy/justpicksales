@@ -7,14 +7,16 @@ block content
         .col-md-4
     table.table.table-hover
         thead
-            th Order Date:
             th Order ID:
-            th Title:
-            th ASIN/ISBN:
-            th Shipment Date:
-            th Quantity:
-            th Purchase Price Per Unit:
-            th Item Total:
-        tbody#result
-            include templates/walmart-orders-list.hbs
-    .modal
+            th Order Date:
+            th URL:
+            th Address:
+            th Total:
+        tbody
+            each order in orders
+                tr
+                    td #{order.id}
+                    td #{order.date}
+                    td #{order.url}
+                    td #{order.address}
+                    td #{order.total}

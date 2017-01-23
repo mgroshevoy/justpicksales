@@ -2,8 +2,10 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
-
-
-
-
+  ul.nav.nav-pills.nav-stacked
+    li
+      a(href='/orders') Ebay orders
+    li
+      a(href='/amazon') Amazon orders
+    li
+      a(href='/walmart') Walmart orders

@@ -140,8 +140,14 @@ router.get('/search', function (req, res, next) {
 
 /* GET Walmart orders page. */
 router.get('/', function (req, res, next) {
-    res.render('walmart', {
-        title: 'Walmart orders'
+    vo(function*() {
+        return yield WalmartModel.find().sort('-date');
+    })((err, result) => {
+        console.log(result);
+        res.render('walmart', {
+            title: 'Walmart orders',
+            orders: result
+        });
     });
 });
 
