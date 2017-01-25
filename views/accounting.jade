@@ -1,0 +1,67 @@
+extends layout
+
+block content
+    -var sumTotal = 0, sumAmazon = 0, sumWalmart = 0
+    h1= title
+    table.table.table-hover
+        thead
+            th Order ID:
+            th Order Status:
+            //th Items:
+            th Ebay Payment Status:
+            th Payment Status:
+            th Date paid:
+            th Total:
+            //th Address:
+            th Amazon total:
+            th Walmart total:
+        tbody
+            each order in orders
+                tr
+                    td #{order.id}
+                    td #{order.order_status}
+                    //td #{order.items}
+                    td #{order.payment_status}
+                    td #{order.status}
+                    td #{order.paid_time}
+                    td #{order.total}
+                    //td #{order.address}
+                    if order.amazon != null
+                        td #{order.amazon.total}
+                        -sumTotal += order.total
+                        -sumAmazon += order.amazon.total
+                    else
+                        td
+                    if order.walmart != null
+                        td #{order.walmart.total}
+                        -sumTotal += order.total
+                        -sumWalmart += order.walmart.total
+                    else
+                        td
+    script.
+        $(document).ready(function () {
+            var plot1 = $.jqplot('pie1', [[['TOTAL', #{sumTotal}], ['Amazon TOTAL', #{sumAmazon}], ['Walmart TOTAL', #{sumWalmart}]]], {
+                gridPadding: {top: 0, bottom: 38, left: 0, right: 0},
+                seriesDefaults: {
+                    renderer: $.jqplot.PieRenderer,
+                    trendline: {show: false},
+                    rendererOptions: {padding: 8, showDataLabels: true}
+                },
+                legend: {
+                    show: true,
+                    placement: 'outside',
+                    rendererOptions: {
+                        numberRows: 1
+                    },
+                    location: 's',
+                    marginTop: '15px'
+                }
+            });
+        });
+
+    p TOTAL: #{sumTotal}
+    p TOTAL Amazon+Walmart: #{sumAmazon + sumWalmart}
+    p TOTAL Amazon: #{sumAmazon}
+    p TOTAL Walmart: #{sumWalmart}
+
+    #pie1

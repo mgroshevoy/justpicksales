@@ -14,6 +14,11 @@ var email = process.env.WALMART_EMAIL;
 var password = process.env.WALMART_PASS;
 var flag = false;
 
+/**
+ * Authentication on Walmart
+ * @param nightmare Object
+ * @returns {*|{trigger, _default}}
+ */
 function setWalmartAuth(nightmare) {
     return nightmare
         .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
@@ -24,6 +29,11 @@ function setWalmartAuth(nightmare) {
         .click('form [type=submit]')
 }
 
+/**
+ * Get order list
+ * @param nightmare Object
+ * @returns {Object|*}
+ */
 function getWalmartOrders(nightmare) {
     return nightmare
         .wait('.order-history-value')
@@ -41,6 +51,12 @@ function getWalmartOrders(nightmare) {
         })
 }
 
+/**
+ * Get order details
+ * @param nightmare Object
+ * @param url String
+ * @returns {Object|*}
+ */
 function getOrderDetails(nightmare, url) {
     return nightmare
         .goto(url)
@@ -62,6 +78,11 @@ function getOrderDetails(nightmare, url) {
         })
 }
 
+/**
+ * Save order in DB
+ * @param result Object
+ * @returns {Promise}
+ */
 function saveOrder(result) {
     return new Promise((resolve) => {
         var order;
@@ -71,8 +92,8 @@ function saveOrder(result) {
                     id: result.id,
                     date: result.date,
                     url: result.url,
-                    address: result.address,
-                    total: result.total
+                    address: result.address.replace(/\s+/g, " "),
+                    total: Number(result.total.substr(1))
                 });
                 order.save(function (err) {
                     if (!err) {
@@ -82,21 +103,23 @@ function saveOrder(result) {
                     }
                 });
             }
-            resolve (obj);
+            resolve(obj);
         });
     });
 }
 
-/* GET Walmart search */
+/**
+ * GET Walmart orders update
+ */
 router.get('/search', function (req, res, next) {
 
     if (!flag) {
         var arrayOfOrders = [];
         var nightmare = new Nightmare({
-//            openDevTools: {
-//                mode: 'detach'
-//            },
-//            show: true,
+            openDevTools: {
+                mode: 'detach'
+            },
+            show: true,
             webPreferences: {
                 webSecurity: false
             }
@@ -138,7 +161,9 @@ router.get('/search', function (req, res, next) {
     }
 });
 
-/* GET Walmart orders page. */
+/**
+ * GET Walmart orders page
+ */
 router.get('/', function (req, res, next) {
     vo(function*() {
         return yield WalmartModel.find().sort('-date');

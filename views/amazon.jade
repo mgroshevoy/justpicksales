@@ -11,14 +11,22 @@ block content
             //    button.btn.btn-primary#buttonOK(type="submit") OK
     table.table.table-hover
         thead
-            th Order Date:
             th Order ID:
+            th Order Date:
             th Title:
             th ASIN/ISBN:
             th Shipment Date:
             th Quantity:
-            th Purchase Price Per Unit:
             th Item Total:
-        tbody#result
-            include templates/amazon-orders-list.hbs
-    .modal
+            th Address:
+        tbody
+            each order in orders
+                tr
+                    td #{order.id}
+                    td #{order.date}
+                    td #{order.title}
+                    td #{order.asin_isbn}
+                    td #{order.shipment_date}
+                    td #{order.quantity}
+                    td #{order.total}
+                    td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}

@@ -6,7 +6,9 @@ const _ = require('lodash');
 const moment = require('moment');
 const cheerio = require('cheerio');
 const axios = require('axios');
-const util = require('util');
+var vo = require('vo');
+var EbayModel = require('../libs/mongoose').EbayModel;
+
 
 let flag = false;
 let orders;
@@ -106,7 +108,7 @@ function getOrdersFromEbay() {
             }
             return Promise.all(promises);
         }).then(results => {
-            let res = [];
+            var res = [], promises = [];
             arrayOfOrders = _.concat(arrayOfOrders, results);
             _.forEach(arrayOfOrders, function (o) {
                 _.forEach(o.Orders, function (order) {
@@ -117,7 +119,8 @@ function getOrdersFromEbay() {
                         eBayPaymentStatus: order.CheckoutStatus.eBayPaymentStatus,
                         Status: order.CheckoutStatus.Status,
                         PaidTime: order.PaidTime,
-                        Total: order.Total._
+                        Total: order.Total._,
+                        Address: order.ShippingAddress
                     });
                     _.forEach(order.Transactions, function (transaction) {
                         res[res.length - 1].Items.push({
@@ -192,16 +195,68 @@ function getOrdersFromEbay() {
 }
 
 /**
+ * Save order in DB
+ * @param order Object
+ * @returns {Promise}
+ */
+function saveOrder(order) {
+    return new Promise((resolve) => {
+        var objOrder;
+        EbayModel.findOne({id: order['OrderID']}, function (err, obj) {
+            if (obj === null) {
+                objOrder = new EbayModel({
+                    id: order['OrderID'],
+                    items: order['Items'],
+                    order_status: order['OrderStatus'],
+                    payment_status: order['eBayPaymentStatus'],
+                    status: order['Status'],
+                    paid_time: order['PaidTime'],
+                    total: order['Total'],
+                    address: {
+                        name: order.Address.Name,
+                        street1: order.Address.Street1,
+                        street2: order.Address.Street2,
+                        city: order.Address.CityName,
+                        state: order.Address.StateOrProvince,
+                        country: order.Address.Country,
+                        country_name: order.Address.CountryName,
+                        phone: order.Address.Phone,
+                        postal_code: order.Address.PostalCode
+                    }
+                });
+                objOrder.save(function (err) {
+                    if (!err) {
+                        console.info("Order saved!");
+                    } else {
+                        console.error('Internal error: %s', err.message);
+                    }
+
+                });
+            }
+            resolve(obj);
+        });
+    })
+}
+
+
+/**
  * Search orders
  */
 router.get('/search', function (req, res, next) {
     if (!flag && !(_.isArray(orders))) {
         flag = true;
         getOrdersFromEbay().then(results => {
+            var i, promises = [];
             console.log('Work is done!');
+            for (i = 0; i < results.length; i++) {
+                // console.log(i);
+                // console.log(results[i]);
+                promises.push(saveOrder(results[i]));
+            }
+            Promise.all(promises);
             res.send({orders: results});
             orders = _.clone(results);
-            console.log(util.inspect(orders));
+//            console.log(orders);
 //            flag = false;
         }).catch(error => {
             console.error(error);
@@ -210,7 +265,7 @@ router.get('/search', function (req, res, next) {
         if (_.isArray(orders)) {
             res.send({orders: orders});
         } else res.send({inProgress: true});
-        console.log(util.inspect(orders));
+//        console.log(orders);
         //res.render('orders', {title: 'Orders', orders: orders});
         //res.send();
     }
