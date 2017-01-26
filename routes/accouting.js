@@ -19,12 +19,21 @@ router.get('/', function (req, res, next) {
             console.log(result.length);
             for (i = 0; i < result.length; i++) {
                 promises.push(AmazonModel
-                    .findOne({shipping_name: result[i].address.name, shipping_street1: result[i].address.street1}));
+                    .findOne({
+                        shipping_name: {
+                            '$regex': result[i].address.name,
+                            '$options': 'i'
+                        },
+                        shipping_street1: {
+                            '$regex': result[i].address.street1,
+                            '$options': 'i'
+                        }
+                    }));
             }
             Promise.all(promises).then(amazonOrders => {
                 for (i = 0; i < result.length; i++) {
                     result[i].amazon = amazonOrders[i];
-                //    console.log(result[i].amazon);
+                    //    console.log(result[i].amazon);
                 }
                 promises = [];
                 for (i = 0; i < result.length; i++) {
