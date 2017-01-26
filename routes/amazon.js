@@ -119,7 +119,7 @@ function loadCSV(strFileName) {
         }, function (err, data) {
             if (err) {
                 console.error(err);
-                resolve([{'Order Date': 'No data'}]);
+                resolve([{'Order ID': 'No data'}]);
             }
             console.log(path.join(csvDir, strFileName));
             //console.log(data);
@@ -164,7 +164,7 @@ function saveOrder(order) {
     return new Promise((resolve) => {
         var objOrder;
         AmazonModel.findOne({id: order['Order ID']}, function (err, obj) {
-            if (obj === null) {
+            if (obj === null && order['Order ID'] != 'No data') {
                 objOrder = new AmazonModel({
                     id: order['Order ID'],
                     date: order['Order Date'],

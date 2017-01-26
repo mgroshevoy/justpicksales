@@ -112,8 +112,12 @@ function getOrdersFromEbay() {
             arrayOfOrders = _.concat(arrayOfOrders, results);
             _.forEach(arrayOfOrders, function (o) {
                 _.forEach(o.Orders, function (order) {
+                    console.log(order);
                     res.push({
                         OrderID: order.OrderID,
+                        CreatedTime: order.CreatedTime,
+                        AdjustmentAmount: order.AdjustmentAmount.amount,
+                        AmountPaid: order.AmountPaid.amount,
                         OrderStatus: order.OrderStatus,
                         Items: [],
                         eBayPaymentStatus: order.CheckoutStatus.eBayPaymentStatus,
@@ -206,6 +210,9 @@ function saveOrder(order) {
             if (obj === null) {
                 objOrder = new EbayModel({
                     id: order['OrderID'],
+                    created_time: order['CreatedTime'],
+                    adj_amount: order['AdjustmentAmount'],
+                    paid_amount: order['AmountPaid'],
                     items: order['Items'],
                     order_status: order['OrderStatus'],
                     payment_status: order['eBayPaymentStatus'],

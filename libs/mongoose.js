@@ -54,6 +54,9 @@ var AmazonOrders = new Schema({
 
 var EbayOrders = new Schema({
     id: {type: String, unique: true, required: true},
+    created_time: Date,
+    adj_amount: Number,
+    paid_amount: Number,
     order_status: String,
     items: [],
     payment_status: String,

@@ -1,12 +1,15 @@
 extends layout
 
 block content
-    -var sumTotal = 0, sumAmazon = 0, sumWalmart = 0
+    -var sumTotal = 0, sumAmazon = 0, sumWalmart = 0, sumCancelled = 0
     h1= title
     table.table.table-hover
         thead
             th Order ID:
             th Order Status:
+            th Date Created:
+            th Adjustment amount:
+            th Amount paid:
             //th Items:
             th Ebay Payment Status:
             th Payment Status:
@@ -20,6 +23,10 @@ block content
                 tr
                     td #{order.id}
                     td #{order.order_status}
+                    td #{order.created_time}
+                    td #{order.adj_amount*-1}
+                    -sumCancelled += order.adj_amount*-1
+                    td #{order.paid_amount}
                     //td #{order.items}
                     td #{order.payment_status}
                     td #{order.status}
@@ -59,6 +66,7 @@ block content
             });
         });
 
+    p TOTAL Cancelled: #{sumCancelled}
     p TOTAL: #{sumTotal}
     p TOTAL Amazon+Walmart: #{sumAmazon + sumWalmart}
     p TOTAL Amazon: #{sumAmazon}

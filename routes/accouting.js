@@ -12,8 +12,8 @@ var WalmartModel = require('../libs/mongoose').WalmartModel;
 router.get('/', function (req, res, next) {
     EbayModel
         .find()
-        .where('paid_time').gte(moment().subtract(30, 'days').toISOString())
-        .sort('-paid_time')
+        .where('created_time').gte(moment().subtract(30, 'days').toISOString())
+        .sort('-created_time')
         .then(result => {
             var i, promises = [];
             console.log(result.length);
