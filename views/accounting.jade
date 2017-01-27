@@ -1,7 +1,7 @@
 extends layout
 
 block content
-    -var sumTotal = 0, sumAmazon = 0, sumWalmart = 0, sumCancelled = 0
+    -var sumTotal = 0, sumAmazon = 0, sumWalmart = 0, sumCancelled = 0, numOrders = 0
     h1= title
     table.table.table-hover
         thead
@@ -21,6 +21,7 @@ block content
         tbody
             each order in orders
                 tr
+                    -numOrders += 1
                     td #{order.id}
                     td #{order.order_status}
                     td #{order.created_time}
@@ -32,16 +33,15 @@ block content
                     td #{order.status}
                     td #{order.paid_time}
                     td #{order.total}
+                    -sumTotal += order.total
                     //td #{order.address}
                     if order.amazon != null
                         td #{order.amazon.total}
-                        -sumTotal += order.total
                         -sumAmazon += order.amazon.total
                     else
                         td
                     if order.walmart != null
                         td #{order.walmart.total}
-                        -sumTotal += order.total
                         -sumWalmart += order.walmart.total
                     else
                         td
@@ -66,6 +66,7 @@ block content
             });
         });
 
+    p Orders: #{numOrders}
     p TOTAL Cancelled: #{sumCancelled}
     p TOTAL: #{sumTotal}
     p TOTAL Amazon+Walmart: #{sumAmazon + sumWalmart}
