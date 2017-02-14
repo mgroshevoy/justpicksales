@@ -45,7 +45,7 @@ block content
                     -fee = 0
                     each item in order.items
                         -fee += Number(item.FinalValueFee)
-                    -fee += (Number(order.total) * 0.044)
+                    -fee += (Number(order.total) * 0.044 + 0.3)
                     -fee = fee.toFixed(2)
                     td #{fee}
                     -sumFee += Number(fee)
