@@ -235,7 +235,7 @@ router.get('/', function (req, res, next) {
             res.render('amazon', {
                 title: 'Amazon orders',
                 orders: result,
-                lastUpdate: lastRec[0]._id.getTimestamp()
+                lastUpdate: lastRec[0] ? lastRec[0]._id.getTimestamp(): 'No updates'
             });
         });
     });
