@@ -63,6 +63,7 @@ var EbayOrders = new Schema({
     status: String,
     paid_time: Date,
     total: Number,
+    sellingmanagernumber: Number,
     address: {
         name: String,
         street1: String,

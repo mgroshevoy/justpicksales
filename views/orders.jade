@@ -1,19 +1,70 @@
 extends layout
 block content
-    h1= title
+    -var fee
+    .row
+        .col-md-5
+            h1= title
+        .col-md-3
+        .col-md-4
+            span Updated:
+            a.btn.btn-default(href='/orders/search') #{lastUpdate.toLocaleString("en-US")}
     table.table.table-hover
         thead
+            th Selling Manager
             th Order ID:
             th Order status:
             th Date created:
-            th Adjustment Amount:
-            th Amount Paid:
+            //th Adjustment Amount:
+            //th Amount Paid:
             th Items:
-            th Ebay Payment Status:
+            //th Ebay Payment Status:
             th Payment Status:
             th Date paid:
+            th PP Fee:
+            th EBAY Fee:
             th Total:
             th Address:
         tbody#result
-            include templates/ebay-orders-list.hbs
+            each order in orders
+                tr
+                    td #{order.sellingmanagernumber}
+                    td #{order.id}
+                    td #{order.order_status}
+                    td #{order.created_time.toLocaleDateString("en-US")}
+                    //td #{order.adj_amount}
+                    //td #{order.paid_amount}
+                    td
+                        table.table.table-bordered
+                            -fee = 0
+                            each item in order.items
+                                tr
+                                    -fee += Number(item.FinalValueFee)
+                                    td
+                                        img(src="#{item.Image}" width=100 height=100)
+                                    td
+                                        ul
+                                            li #{item.Title}
+                                            li #{item.ItemID}
+                                            li #{item.SKU}
+                    //td #{order.payment_status}
+                    td #{order.status}
+                    -console.log(order.created_time)
+                    if order.paid_time
+                        td #{order.paid_time.toLocaleDateString("en-US")}
+                    else
+                        td
+                    td #{(Number(order.total) * 0.044).toFixed(2)}
+                    td #{fee}
+                    td #{order.total}
+                    td
+                        ul.list-group
+                            li.list-group-item #{order.address.name}
+                            li.list-group-item #{order.address.phone}
+                            li.list-group-item #{order.address.city}
+                            li.list-group-item #{order.address.street1}
+                            li.list-group-item #{order.address.street2}
+                            li.list-group-item #{order.address.country_name}
+                            li.list-group-item #{order.address.country}
+                            li.list-group-item #{order.address.postal_code}
+            //include templates/ebay-orders-list.hbs
     .modal

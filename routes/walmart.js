@@ -169,9 +169,14 @@ router.get('/', function (req, res, next) {
         return yield WalmartModel.find().sort('-date');
     })((err, result) => {
         console.log(result);
-        res.render('walmart', {
-            title: 'Walmart orders',
-            orders: result
+        vo(function*() {
+            return yield WalmartModel.find().limit(1).sort({$natural:-1});
+        }) ((error, lastRec) => {
+            res.render('walmart', {
+                title: 'Walmart orders',
+                orders: result,
+                lastUpdate: lastRec[0]._id.getTimestamp()
+            });
         });
     });
 });

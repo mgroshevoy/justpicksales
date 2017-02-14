@@ -34,6 +34,8 @@ function ebayGetOrders(intPage = 1) {
             authToken: process.env.EBAY_AUTHTOKEN,
 
             params: {
+                DetailLevel: 'ReturnAll',
+                IncludeFinalValueFee: true,
                 OrderStatus: 'All',
                 CreateTimeFrom: moment().subtract(90, 'days').toISOString(),
                 CreateTimeTo: moment().toISOString(),
@@ -74,12 +76,14 @@ function ebayGetSellerList(intPage = 1) {
             authToken: process.env.EBAY_AUTHTOKEN,
 
             params: {
+                DetailLevel: 'ReturnAll',
+                IncludeFinalValueFee: true,
                 StartTimeFrom: moment().subtract(120, 'days').toISOString(),
                 StartTimeTo: moment().toISOString(),
                 // EndTimeFrom: moment().subtract(120, 'days').toISOString(),
                 // EndTimeTo: moment().toISOString(),
                 Sort: 1,
-                GranularityLevel: 'Coarse',
+                //GranularityLevel: 'Coarse',
                 Pagination: {
                     EntriesPerPage: 200,
                     PageNumber: intPage
@@ -124,13 +128,15 @@ function getOrdersFromEbay() {
                         Status: order.CheckoutStatus.Status,
                         PaidTime: order.PaidTime,
                         Total: order.Total._,
-                        Address: order.ShippingAddress
+                        Address: order.ShippingAddress,
+                        SellingManagerNumber: order.ShippingDetails.SellingManagerSalesRecordNumber
                     });
                     _.forEach(order.Transactions, function (transaction) {
                         res[res.length - 1].Items.push({
                             ItemID: transaction.Item.ItemID,
                             Title: transaction.Item.Title,
                             SKU: transaction.Item.SKU,
+                            FinalValueFee: transaction.FinalValueFee._
                         });
                     })
                 })
@@ -219,6 +225,7 @@ function saveOrder(order) {
                     status: order['Status'],
                     paid_time: order['PaidTime'],
                     total: order['Total'],
+                    sellingmanagernumber: order['SellingManagerNumber'],
                     address: {
                         name: order.Address.Name,
                         street1: order.Address.Street1,
@@ -250,31 +257,26 @@ function saveOrder(order) {
  * Search orders
  */
 router.get('/search', function (req, res, next) {
-    if (!flag && !(_.isArray(orders))) {
+    if (!flag) {
         flag = true;
         getOrdersFromEbay().then(results => {
             var i, promises = [];
             console.log('Work is done!');
             for (i = 0; i < results.length; i++) {
-                // console.log(i);
-                // console.log(results[i]);
+                console.log(results[i].Items);
                 promises.push(saveOrder(results[i]));
             }
-            Promise.all(promises);
-            res.send({orders: results});
-            orders = _.clone(results);
+            Promise.all(promises).then(() => {
+                flag = false;
+            });
+//            res.send({orders: results});
+//            orders = _.clone(results);
 //            console.log(orders);
-//            flag = false;
         }).catch(error => {
             console.error(error);
         });
     } else {
-        if (_.isArray(orders)) {
-            res.send({orders: orders});
-        } else res.send({inProgress: true});
-//        console.log(orders);
-        //res.render('orders', {title: 'Orders', orders: orders});
-        //res.send();
+        res.send({inProgress: true});
     }
 });
 
@@ -283,7 +285,19 @@ router.get('/search', function (req, res, next) {
  * Get orders
  */
 router.get('/', function (req, res, next) {
-    res.render('orders', {title: 'Orders'});
+    vo(function*() {
+        return yield EbayModel.find().sort('-created_time');
+    })((err, result) => {
+        vo(function*() {
+            return yield EbayModel.find().limit(1).sort({$natural:-1});
+        }) ((error, lastRec) => {
+            res.render('orders', {
+                title: 'Ebay Orders',
+                orders: result,
+                lastUpdate: lastRec[0]._id.getTimestamp()
+            });
+        });
+    });
 });
 
 module.exports = router;

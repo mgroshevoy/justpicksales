@@ -229,9 +229,14 @@ router.get('/', function (req, res, next) {
     vo(function*() {
         return yield AmazonModel.find().sort('-date');
     })((err, result) => {
-        res.render('amazon', {
-            title: 'Amazon orders',
-            orders: result
+        vo(function*() {
+            return yield AmazonModel.find().limit(1).sort({$natural:-1});
+        }) ((error, lastRec) => {
+            res.render('amazon', {
+                title: 'Amazon orders',
+                orders: result,
+                lastUpdate: lastRec[0]._id.getTimestamp()
+            });
         });
     });
 
