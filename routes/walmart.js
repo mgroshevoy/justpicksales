@@ -64,7 +64,7 @@ function getOrderDetails(nightmare, url) {
         .evaluate(() => {
             var orderDetails = {};
             var address = document.querySelector('.order-shipping-address');
-            var total = document.querySelector('.order-summary-info-price-value');
+            var total = document.querySelector('dd.order-total');
             if (address != null) {
                 orderDetails.address = address.textContent;
             } else {
