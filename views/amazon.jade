@@ -25,10 +25,10 @@ block content
             each order in orders
                 tr
                     td #{order.id}
-                    td #{order.date}
+                    td #{order.date.toLocaleDateString("en-US")}
                     td #{order.title}
                     td #{order.asin_isbn}
-                    td #{order.shipment_date}
+                    td #{order.shipment_date.toLocaleDateString("en-US")}
                     td #{order.quantity}
                     td #{order.total}
-                    td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}
+                    td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}, #{order.shipping_zip}

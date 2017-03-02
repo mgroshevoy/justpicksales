@@ -24,8 +24,12 @@ router.get('/', function (req, res, next) {
                             '$regex': result[i].address.name,
                             '$options': 'i'
                         },
-                        shipping_street1: {
-                            '$regex': result[i].address.street1,
+                        date: {
+                            $gte: moment(result[i].created_time).startOf('day').toISOString(),
+                            $lt: moment(result[i].created_time).startOf('day').add(3, 'days').toISOString()
+                        },
+                        shipping_zip: {
+                            '$regex': result[i].address.postal_code.substr(0, 5),
                             '$options': 'i'
                         }
                     }));
@@ -33,15 +37,19 @@ router.get('/', function (req, res, next) {
             Promise.all(promises).then(amazonOrders => {
                 for (i = 0; i < result.length; i++) {
                     result[i].amazon = amazonOrders[i];
-                    //    console.log(result[i].amazon);
+                    console.log(result[i].amazon);
                 }
                 promises = [];
                 for (i = 0; i < result.length; i++) {
                     promises.push(WalmartModel
                         .findOne({
                             address: {
-                                '$regex': result[i].address.name + ', ' + result[i].address.street1,
+                                '$regex': result[i].address.name, // + '.*' + result[i].address.postal_code.substr(0, 5),
                                 '$options': 'i'
+                            },
+                            date: {
+                                $gte: moment(result[i].created_time).startOf('day').toISOString(),
+                                $lt: moment(result[i].created_time).startOf('day').add(3, 'days').toISOString()
                             }
                         }));
                 }

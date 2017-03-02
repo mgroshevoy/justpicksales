@@ -93,7 +93,7 @@ function saveOrder(result) {
                     date: result.date,
                     url: result.url,
                     address: result.address.replace(/\s+/g, " "),
-                    total: Number(result.total.substr(1))
+                    total: result.total?Number(result.total.substr(1)):0
                 });
                 order.save(function (err) {
                     if (!err) {
@@ -165,6 +165,7 @@ router.get('/search', function (req, res, next) {
  * GET Walmart orders page
  */
 router.get('/', function (req, res, next) {
+    console.log(req);
     vo(function*() {
         return yield WalmartModel.find().sort('-date');
     })((err, result) => {
