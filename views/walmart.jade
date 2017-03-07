@@ -18,7 +18,7 @@ block content
             each order in orders
                 tr
                     td #{order.id}
-                    td #{order.date.toLocaleDateString("en-US")}
+                    td #{order.date?order.date.toLocaleDateString("en-US"):''}
                     td #{order.url}
                     td #{order.address}
                     td #{order.total}

@@ -28,7 +28,7 @@ block content
                     td #{order.date.toLocaleDateString("en-US")}
                     td #{order.title}
                     td #{order.asin_isbn}
-                    td #{order.shipment_date.toLocaleDateString("en-US")}
+                    td #{order.shipment_date?order.shipment_date.toLocaleDateString("en-US"):''}
                     td #{order.quantity}
                     td #{order.total}
                     td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}, #{order.shipping_zip}
