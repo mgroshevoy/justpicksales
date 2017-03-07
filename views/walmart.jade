@@ -6,7 +6,7 @@ block content
         .col-md-3
         .col-md-4
             span Updated:
-            a.btn.btn-default(href='/walmart/search') #{lastUpdate.toLocaleString("en-US")}
+            a.btn.btn-default(onclick='updateWalmart()') #{lastUpdate.toLocaleString("en-US")}
     table.table.table-hover
         thead
             th Order ID:
@@ -22,3 +22,15 @@ block content
                     td #{order.url}
                     td #{order.address}
                     td #{order.total}
+    .modal
+    script.
+        var socket = io();
+        var $body = $("body");
+        socket.on('updateOver', function () {
+            $body.removeClass("loading");
+            console.log('Data is updated!');
+        });
+        var updateWalmart = function () {
+            $body.addClass("loading");
+            socket.emit('updateWalmart');
+        }
