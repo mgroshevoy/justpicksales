@@ -7,7 +7,7 @@ block content
             .captcha
         .col-md-4
             span Updated:
-            a.btn.btn-default(href='/amazon/search') #{lastUpdate.toLocaleString("en-US")}
+            a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
             //form.form-inline
             //    input.form-control#textCaptcha(type="text")
             //    button.btn.btn-primary#buttonOK(type="submit") OK
@@ -25,10 +25,23 @@ block content
             each order in orders
                 tr
                     td #{order.id}
-                    td #{order.date.toLocaleDateString("en-US")}
+                    td #{order.date?order.date.toLocaleDateString("en-US"):''}
                     td #{order.title}
                     td #{order.asin_isbn}
                     td #{order.shipment_date?order.shipment_date.toLocaleDateString("en-US"):''}
                     td #{order.quantity}
                     td #{order.total}
                     td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}, #{order.shipping_zip}
+    .modal
+    script.
+        var socket = io();
+        var $body = $("body");
+        socket.on('updateOver', function () {
+            $body.removeClass("loading");
+            console.log('Data is updated!');
+            location.reload();
+        });
+        var updateData = function () {
+            $body.addClass("loading");
+            socket.emit('updateBegin');
+        }

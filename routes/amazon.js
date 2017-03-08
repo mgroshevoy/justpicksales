@@ -14,7 +14,7 @@ var AmazonModel = require('../libs/mongoose').AmazonModel;
 
 var email = process.env.AMAZON_EMAIL;
 var password = process.env.AMAZON_PASS;
-var objFile;
+var objFile, flag = false;
 
 
 /**
@@ -207,25 +207,31 @@ function saveOrder(order) {
         });
     })
 }
-/**
- * GET Amazon search
- */
-router.get('/search', function (req, res, next) {
-    getAmazonOrders().then(result => {
-        var i, promises = [];
-        console.log(result);
-        for (i = 0; i < result.length; i++) {
-            promises.push(saveOrder(result[i]));
-        }
-        Promise.all(promises);
-        res.send(result);
-    });
-});
 
 /**
  * GET Amazon orders page
  */
 router.get('/', function (req, res, next) {
+    res.io.on('connection', function (socket) {
+        socket.on('updateBegin', function () {
+            if (!flag){
+                flag = true;
+                getAmazonOrders().then(result => {
+                    return new Promise ((resolve) => {
+                        var i, promises = [];
+                        for (i = 0; i < result.length; i++) {
+                            promises.push(saveOrder(result[i]));
+                        }
+                        Promise.all(promises);
+                        resolve (result);
+                    });
+                }).then(() => {
+                    res.io.emit('updateOver');
+                    flag = false;
+                });
+            }
+        });
+    });
     vo(function*() {
         return yield AmazonModel.find().sort('-date');
     })((err, result) => {

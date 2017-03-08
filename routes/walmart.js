@@ -172,7 +172,7 @@ function getWalmartOrdersUpdate() {
  */
 router.get('/', function (req, res, next) {
     res.io.on('connection', function (socket) {
-        socket.on('updateWalmart', function () {
+        socket.on('updateBegin', function () {
             getWalmartOrdersUpdate().then(() => {
                 res.io.emit('updateOver');
             });

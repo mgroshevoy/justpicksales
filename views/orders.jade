@@ -7,7 +7,7 @@ block content
         .col-md-3
         .col-md-4
             span Updated:
-            a.btn.btn-default(href='/orders/search') #{lastUpdate.toLocaleString("en-US")}
+            a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
     table.table.table-hover
         thead
             th Selling Manager
@@ -48,7 +48,6 @@ block content
                                             li #{item.SKU}
                     //td #{order.payment_status}
                     td #{order.status}
-                    -console.log(order.created_time)
                     if order.paid_time
                         td #{order.paid_time.toLocaleDateString("en-US")}
                     else
@@ -68,3 +67,15 @@ block content
                             li.list-group-item #{order.address.postal_code}
             //include templates/ebay-orders-list.hbs
     .modal
+    script.
+        var socket = io();
+        var $body = $("body");
+        socket.on('updateOver', function () {
+            $body.removeClass("loading");
+            console.log('Data is updated!');
+            location.reload();
+        });
+        var updateData = function () {
+            $body.addClass("loading");
+            socket.emit('updateBegin');
+        }

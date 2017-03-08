@@ -112,7 +112,7 @@ function getOrdersFromEbay() {
             }
             return Promise.all(promises);
         }).then(results => {
-            var res = [], promises = [];
+            var res = [];
             arrayOfOrders = _.concat(arrayOfOrders, results);
             _.forEach(arrayOfOrders, function (o) {
                 _.forEach(o.Orders, function (order) {
@@ -175,28 +175,23 @@ function getOrdersFromEbay() {
             let promises = [];
             _.forEach(results, function (o, i) {
                 _.forEach(o.Items, function (item, j) {
-                    if (!_.isString(results[i].Items[j].Image))
-                        promises.push(new Promise((resolve, reject) => {
-                            axios.get("http://cgi.ebay.com/ws/eBayISAPI.dll?ViewItem&item=" + item.ItemID)
-                                .then((response) => {
-                                    $ = cheerio.load(response.data);
-                                    results[i].Items[j].Image = $('#icImg')['0'].attribs.src;
-                                    resolve(results);
-                                }).catch(error => {
+                    if (!_.isString(results[i].Items[j].Image)) {
+                        promises.push(axios.get("http://cgi.ebay.com/ws/eBayISAPI.dll?ViewItem&item=" + item.ItemID)
+                            .then((response) => {
+                                $ = cheerio.load(response.data);
+                                results[i].Items[j].Image = $('#icImg')[0].src;
+                                resolve(results[i].Items[j].Image);
+                            }).catch(error => {
                                 console.error(error);
-                                reject(results);
-                            });
-                        }));
-                })
+                                reject(error);
+                            }));
+                    }
+                    console.log(results[i].Items[j].Image);
+                });
             });
-            return Promise.all(promises);
-        }).catch(error => {
-            console.error(error);
-            reject(error);
-        }).then(results => {
-            console.log('Search is done!');
-            results[results.length - 1] = _.orderBy(results[results.length - 1], ['PaidTime'], ['desc']);
-            resolve(results[results.length - 1]);
+            console.log(promises.length);
+            Promise.all(promises);
+            resolve(results);
         }).catch(error => {
             console.error(error);
             reject(error);
@@ -210,7 +205,7 @@ function getOrdersFromEbay() {
  * @returns {Promise}
  */
 function saveOrder(order) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         var objOrder;
         EbayModel.findOne({id: order['OrderID']}, function (err, obj) {
             if (obj === null) {
@@ -254,47 +249,41 @@ function saveOrder(order) {
 
 
 /**
- * Search orders
- */
-router.get('/search', function (req, res, next) {
-    if (!flag) {
-        flag = true;
-        getOrdersFromEbay().then(results => {
-            var i, promises = [];
-            console.log('Work is done!');
-            for (i = 0; i < results.length; i++) {
-                console.log(results[i].Items);
-                promises.push(saveOrder(results[i]));
-            }
-            Promise.all(promises).then(() => {
-                flag = false;
-            });
-//            res.send({orders: results});
-//            orders = _.clone(results);
-//            console.log(orders);
-        }).catch(error => {
-            console.error(error);
-        });
-    } else {
-        res.send({inProgress: true});
-    }
-});
-
-
-/**
  * Get orders
  */
 router.get('/', function (req, res, next) {
+    res.io.on('connection', function (socket) {
+        socket.on('updateBegin', function () {
+            console.log('Flag is: ' + flag);
+            if (!flag) {
+                flag = true;
+                getOrdersFromEbay().then(results => {
+                    var i, promises = [];
+                    console.log('Saving...');
+                    console.log(results);
+                    for (i = 0; i < results.length; i++) {
+                        console.log('I=' + i);
+                        console.log(results[i]);
+                        promises.push(saveOrder(results[i]));
+                    }
+                    return Promise.all(promises);
+                }).then(() => {
+                    res.io.emit('updateOver');
+                    flag = false;
+                });
+            }
+        });
+    });
     vo(function*() {
         return yield EbayModel.find().sort('-created_time');
     })((err, result) => {
         vo(function*() {
-            return yield EbayModel.find().limit(1).sort({$natural:-1});
-        }) ((error, lastRec) => {
+            return yield EbayModel.find().limit(1).sort({$natural: -1});
+        })((error, lastRec) => {
             res.render('orders', {
                 title: 'Ebay Orders',
                 orders: result,
-                lastUpdate: lastRec[0] ? lastRec[0]._id.getTimestamp(): 'No updates'
+                lastUpdate: lastRec[0] ? lastRec[0]._id.getTimestamp() : 'No updates'
             });
         });
     });

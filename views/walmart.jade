@@ -6,7 +6,7 @@ block content
         .col-md-3
         .col-md-4
             span Updated:
-            a.btn.btn-default(onclick='updateWalmart()') #{lastUpdate.toLocaleString("en-US")}
+            a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
     table.table.table-hover
         thead
             th Order ID:
@@ -29,8 +29,9 @@ block content
         socket.on('updateOver', function () {
             $body.removeClass("loading");
             console.log('Data is updated!');
+            location.reload();
         });
-        var updateWalmart = function () {
+        var updateData = function () {
             $body.addClass("loading");
-            socket.emit('updateWalmart');
+            socket.emit('updateBegin');
         }
