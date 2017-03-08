@@ -253,9 +253,10 @@ function saveOrder(order) {
  */
 router.get('/', function (req, res, next) {
     res.io.on('connection', function (socket) {
-        socket.on('updateBegin', function () {
-            console.log('Flag is: ' + flag);
-            if (!flag) {
+        if (!flag) {
+            socket.on('updateBegin', function () {
+                console.log('Flag is: ' + flag);
+
                 flag = true;
                 getOrdersFromEbay().then(results => {
                     var i, promises = [];
@@ -268,11 +269,12 @@ router.get('/', function (req, res, next) {
                     }
                     return Promise.all(promises);
                 }).then(() => {
-                    res.io.emit('updateOver');
+                    res.io.broadcast.emit('updateOver');
                     flag = false;
                 });
-            }
-        });
+
+            });
+        }
     });
     vo(function*() {
         return yield EbayModel.find().sort('-created_time');

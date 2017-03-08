@@ -23,7 +23,8 @@ function setWalmartAuth(nightmare) {
     return nightmare
         .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
         .goto('http://www.walmart.com/')
-        .goto('https://www.walmart.com/account/orders')
+        .wait('.header-GlobalAccountFlyout-link')
+        .click('.header-GlobalAccountFlyout-link')
         .wait('.form-box')
         .type('form [name=email]', email)
         .type('form [name=password]', password)
