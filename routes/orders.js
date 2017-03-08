@@ -252,30 +252,33 @@ function saveOrder(order) {
  * Get orders
  */
 router.get('/', function (req, res, next) {
-    res.io.on('connection', function (socket) {
-        if (!flag) {
-            socket.on('updateBegin', function () {
-                console.log('Flag is: ' + flag);
+    if (!flag) {
+        console.log(flag);
+        res.io.on('connection', function (socket) {
+            if (!flag) {
+                socket.on('updateBegin', function () {
+                    console.log('Flag is: ' + flag);
+                    flag = true;
+                    getOrdersFromEbay().then(results => {
+                        var i, promises = [];
+                        console.log('Saving...');
+                        console.log(results);
+                        for (i = 0; i < results.length; i++) {
+                            console.log('I=' + i);
+                            console.log(results[i]);
+                            promises.push(saveOrder(results[i]));
+                        }
+                        return Promise.all(promises);
+                    }).then(() => {
+                        socket.broadcast.emit('updateOver');
+                        socket.emit('updateOver');
+                        flag = false;
+                    });
 
-                flag = true;
-                getOrdersFromEbay().then(results => {
-                    var i, promises = [];
-                    console.log('Saving...');
-                    console.log(results);
-                    for (i = 0; i < results.length; i++) {
-                        console.log('I=' + i);
-                        console.log(results[i]);
-                        promises.push(saveOrder(results[i]));
-                    }
-                    return Promise.all(promises);
-                }).then(() => {
-                    res.io.broadcast.emit('updateOver');
-                    flag = false;
                 });
-
-            });
-        }
-    });
+            }
+        });
+    }
     vo(function*() {
         return yield EbayModel.find().sort('-created_time');
     })((err, result) => {
