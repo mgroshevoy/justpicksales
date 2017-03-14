@@ -3,13 +3,15 @@ html
     head
         title= title
         link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
+        link(rel='stylesheet', href='/stylesheets/bootstrap-datepicker.min.css')
         link(rel='stylesheet', href='/stylesheets/jquery.jqplot.min.css')
         link(rel='stylesheet', href='/stylesheets/style.css')
         script(src='/socket.io/socket.io.js')
         script(src='/javascripts/jquery-3.1.1.min.js')
-        script(src='/javascripts/bootstrap.min.js')
-        script(src='/javascripts/handlebars.min.js')
         script(src='/javascripts/moment.min.js')
+        script(src='/javascripts/bootstrap.min.js')
+        script(src='/javascripts/bootstrap-datepicker.min.js')
+        script(src='/javascripts/handlebars.min.js')
         script(src='/javascripts/jquery.jqplot.min.js')
         script(src='/javascripts/jqplot.pieRenderer.js')
     body
@@ -24,11 +26,11 @@ html
             .collapse.navbar-collapse(id='navbarCollapse')
                 ul.nav.navbar-nav
                     li
-                        a(href='/accounting') Accounting
+                        a.btn-default(href='/accounting') Accounting
                     li
-                        a(href='/orders') Ebay orders
+                        a.btn-default(href='/orders') Ebay orders
                     li
-                        a(href='/amazon') Amazon orders
+                        a.btn-default(href='/amazon') Amazon orders
                     li
-                        a(href='/walmart') Walmart orders
+                        a.btn-default(href='/walmart') Walmart orders
         block content

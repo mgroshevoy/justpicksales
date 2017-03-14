@@ -22,8 +22,39 @@ block content
                     td #{order.url}
                     td #{order.address}
                     td #{order.total}
-    .modal
+    .modalload
+
+    #cookiemodal.modal.fade
+        .modal-dialog
+            .modal-content
+                .modal-header
+                    button.close(type="button" data-dismiss="modal") &times;
+                    h4.modal-title Walmart Cookie
+                .modal-body
+                    .form-group
+                        label Paste cookies:
+                        textarea.form-control#arraycookies
+                .modal-footer
+                    button#submitcookies.btn.btn-default Send
     script.
+        $("#submitcookies").on('click', function (ev) {
+            var arr = [], i;
+            try {
+                arr = JSON.parse($('#arraycookies').val());
+            } catch (err) {
+                alert('Error! Paste valid cookies, please!');
+                return;
+            }
+            for(i=0; i<arr.length; i++) {
+                if (arr[i].name === 'customer') {
+                    $("#cookiemodal").modal('hide');
+                    $body.addClass("loading");
+                    socket.emit('updateBegin', arr);
+                    return;
+                }
+            }
+            alert('Error! Paste valid cookies, please!');
+        });
         var socket = io();
         var $body = $("body");
         socket.on('updateOver', function () {
@@ -32,6 +63,5 @@ block content
             location.reload();
         });
         var updateData = function () {
-            $body.addClass("loading");
-            socket.emit('updateBegin');
+            $("#cookiemodal").modal('show');
         }

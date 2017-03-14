@@ -19,16 +19,15 @@ var flag = false;
  * @param nightmare Object
  * @returns {*|{trigger, _default}}
  */
-function setWalmartAuth(nightmare) {
+function setWalmartAuth(nightmare,headers) {
+    console.log(headers);
     return nightmare
-        .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
-        .goto('http://www.walmart.com/')
-        .wait('.header-GlobalAccountFlyout-link')
-        .click('.header-GlobalAccountFlyout-link')
-        .wait('.form-box')
-        .type('form [name=email]', email)
-        .type('form [name=password]', password)
-        .click('form [type=submit]')
+ //       .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
+        .goto('https://www.walmart.com/account/orders', headers)
+        // .wait('.form-box')
+        // .type('form [name=email]', email)
+        // .type('form [name=password]', password)
+        // .click('form [type=submit]')
 }
 
 /**
@@ -60,9 +59,9 @@ function getWalmartOrders(nightmare) {
  * @param url String
  * @returns {Object|*}
  */
-function getOrderDetails(nightmare, url) {
+function getOrderDetails(nightmare, url, headers) {
     return nightmare
-        .goto(url)
+        .goto(url, headers)
         .wait('.order-summary-items')
         .evaluate(() => {
             var orderDetails = {};
@@ -115,10 +114,8 @@ function saveOrder(result) {
  * GET Walmart orders update
  */
 // router.get('/search', function (req, res, next) {
-function getWalmartOrdersUpdate() {
+function getWalmartOrdersUpdate(headers) {
     return new Promise((resolve) => {
-        if (!flag) {
-            flag = true;
             var arrayOfOrders = [];
             var nightmare = new Nightmare({
                 openDevTools: {
@@ -131,8 +128,9 @@ function getWalmartOrdersUpdate() {
             });
             vo(function*() {
                 var i, isIdInDB = false;
-                yield setWalmartAuth(nightmare);
+                yield setWalmartAuth(nightmare, headers);
                 arrayOfOrders = yield getWalmartOrders(nightmare);
+                if (yield nightmare.exists('.form-box')) throw new Error('Auth error!');
                 while (yield nightmare.exists('a.s-margin-left')) {
                     yield WalmartModel.findOne({id: _.last(arrayOfOrders).id}, function (err, obj) {
                         console.log(obj);
@@ -146,7 +144,7 @@ function getWalmartOrdersUpdate() {
                     arrayOfOrders = _.concat(arrayOfOrders, yield getWalmartOrders(nightmare));
                 }
                 for (i = 0; i < arrayOfOrders.length; i++) {
-                    var orderDetails = yield getOrderDetails(nightmare, arrayOfOrders[i].url);
+                    var orderDetails = yield getOrderDetails(nightmare, arrayOfOrders[i].url, headers);
                     if (yield nightmare.exists('a.btn error-ErrorPage-link')) yield nightmare.click('a.btn error-ErrorPage-link');
                     arrayOfOrders[i].address = orderDetails.address.substr(3);
                     arrayOfOrders[i].total = orderDetails.total;
@@ -161,10 +159,8 @@ function getWalmartOrdersUpdate() {
                     promises.push(saveOrder(result[i]));
                 }
                 Promise.all(promises);
-                flag = false;
                 resolve();
             });
-        }
     });
 }
 
@@ -172,13 +168,26 @@ function getWalmartOrdersUpdate() {
  * GET Walmart orders page
  */
 router.get('/', function (req, res, next) {
-    res.io.on('connection', function (socket) {
-        socket.on('updateBegin', function () {
-            getWalmartOrdersUpdate().then(() => {
-                res.io.emit('updateOver');
-            });
+    if (!flag) {
+        res.io.on('connection', function (socket) {
+            if (!flag) {
+                socket.on('updateBegin', function (arrCookie) {
+                    var i, strCookie = '"';
+                    flag = true;
+                    console.log(arrCookie);
+                    for (i=0;i<arrCookie.length;i++){
+                        strCookie += arrCookie[i].name + '=' + arrCookie[i].value + '; ';
+                    }
+                    console.log(strCookie);
+                    getWalmartOrdersUpdate({'cookie': strCookie + '"'}).then(() => {
+                        res.io.emit('updateOver');
+                        flag = false;
+                    });
+
+                });
+            }
         });
-    });
+    }
     vo(function*() {
         return yield WalmartModel.find().sort('-date');
     })((err, result) => {

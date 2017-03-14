@@ -5,8 +5,20 @@ block content
     .row
         .col-md-5
             h1= title
-        .col-md-3
-        .col-md-4
+        .col-md-7
+            .input-group.input-daterange
+                .input-group.date
+                    .input-group-addon From
+                    .input-group.date#datepicker1
+                        input.form-control(type="text" data-provide="datepicker1" data-date-end-date="0d")
+                        span.input-group-addon
+                            span.glyphicon.glyphicon-calendar
+                    .input-group-addon to
+                    .input-group.date#datepicker2
+                        input.form-control(type="text" data-provide="datepicker2" data-date-end-date="0d")
+                        span.input-group-addon
+                            span.glyphicon.glyphicon-calendar
+                    .input-group-addon.btn.btn-primary#buttonSearch Search
     table.table.table-hover
         thead
             th Order ID:
@@ -23,7 +35,7 @@ block content
             //th Address:
             th Amazon total:
             th Walmart total:
-        tbody
+        tbody#results
             each order in orders
                 tr
                     -numOrders += 1
@@ -61,6 +73,16 @@ block content
                     else
                         td
     script.
+        $(function () {
+            $('#datepicker1').datepicker('update', '#{dateFrom}'?moment('#{dateFrom}').format('L'):moment().subtract(30, 'days').format('L'));
+            $('#datepicker2').datepicker('update', '#{dateTo}'?moment('#{dateTo}').format('L'):moment().format('L'));
+            $('#buttonSearch').click(function (event) {
+                window.location.replace("/accounting/"
+                    + moment($('#datepicker1').datepicker('getDate')).format('YYYY-MM-DD')
+                    + "/"
+                    + moment($('#datepicker2').datepicker('getDate')).format('YYYY-MM-DD'));
+            })
+        });
         $(document).ready(function () {
             var plot1 = $.jqplot('pie1', [[['TOTAL', #{sumTotal}], ['Amazon TOTAL', #{sumAmazon}], ['Walmart TOTAL', #{sumWalmart}]]], {
                 gridPadding: {top: 0, bottom: 38, left: 0, right: 0},
