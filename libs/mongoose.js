@@ -77,10 +77,18 @@ var EbayOrders = new Schema({
     }
 });
 
+var PurchasePrice = new Schema({
+    id: {type: String, unique: true, required: true},
+    amazonprice: Number,
+    walmartprice: Number
+});
+
 var WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);
 var AmazonModel = mongoose.model('AmazonOrders', AmazonOrders);
 var EbayModel = mongoose.model('EbayOrders', EbayOrders);
+var PurchaseModel = mongoose.model('PurchasePrice', PurchasePrice);
 
 module.exports.WalmartModel = WalmartModel;
 module.exports.AmazonModel = AmazonModel;
 module.exports.EbayModel = EbayModel;
+module.exports.PurchaseModel = PurchaseModel;

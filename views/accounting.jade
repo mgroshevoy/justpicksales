@@ -12,12 +12,12 @@ block content
                     .input-group.date#datepicker1
                         input.form-control(type="text" data-provide="datepicker1" data-date-end-date="0d")
                         span.input-group-addon
-                            span.glyphicon.glyphicon-calendar
+                            .glyphicon.glyphicon-calendar
                     .input-group-addon to
                     .input-group.date#datepicker2
                         input.form-control(type="text" data-provide="datepicker2" data-date-end-date="0d")
                         span.input-group-addon
-                            span.glyphicon.glyphicon-calendar
+                            .glyphicon.glyphicon-calendar
                     .input-group-addon.btn.btn-primary#buttonSearch Search
     table.table.table-hover
         thead
@@ -39,7 +39,7 @@ block content
             each order in orders
                 tr
                     -numOrders += 1
-                    td #{order.id}
+                    td#id #{order.id}
                     td #{order.order_status}
                     td #{order.created_time.toLocaleDateString("en-US")}
                     td #{order.adj_amount*-1}
@@ -65,14 +65,66 @@ block content
                     if order.amazon != null
                         td #{order.amazon.total}
                         -sumAmazon += order.amazon.total
+                    else if order.purchase !=null
+                        td #{order.purchase.amazonprice}
+                        -sumAmazon += order.purchase.amazonprice
+                    else if order.walmart === null
+                        td#amazontotal
+                            a#editable(href="#" data-type="text")
                     else
-                        td
+                        td#amazontotal
                     if order.walmart != null
                         td #{order.walmart.total}
                         -sumWalmart += order.walmart.total
+                    else if order.purchase != null
+                        if order.purchase.walmartprice != 0
+                            td #{order.purchase.walmartprice}
+                            -sumWalmart += order.purchase.walmartprice
+                        else
+                            td#walmarttotal
+                    else if order.amazon === null
+                        td#walmarttotal
+                            a#editable(href="#" data-type="text")
                     else
-                        td
+                        td#walmarttotal
     script.
+        var socket = io();
+        $('#results a').editable({
+            type: 'text',
+            name: 'amount',
+            validate: function (value) {
+                if (!isNumeric(value) && value != '') {
+                    return 'Value must be a float number!';
+                }
+                //if (value === '') {
+                //    $(this).parent().parent().find('#walmarttotal').html('<a href="#" data-type="text" data-value="" class="editable-click editable-empty">Empty</a>');
+                //    $(this).parent().parent().find('#amazontotal').html('<a href="#" data-type="text" data-value="" class="editable-click editable-empty">Empty</a>');
+                //}
+                switch ($(this).parent().attr('id')) {
+                    case 'amazontotal':
+                        $(this).parent().parent().find('#walmarttotal').html('');
+                        console.log(value);
+                        socket.emit('addPrice', {
+                            id: $(this).parent().parent().find('#id').text(),
+                            amazonprice: value,
+                            walmartprice: 0
+                        });
+                        break;
+                    case 'walmarttotal':
+                        $(this).parent().parent().find('#amazontotal').html('');
+                        console.log(value);
+                        socket.emit('addPrice', {
+                            id: $(this).parent().parent().find('#id').text(),
+                            amazonprice: 0,
+                            walmartprice: value
+                        });
+                        break;
+                }
+            }
+        });
+        function isNumeric(n) {
+            return !isNaN(parseFloat(n)) && isFinite(n);
+        }
         $(function () {
             $('#datepicker1').datepicker('update', '#{dateFrom}'?moment('#{dateFrom}').format('L'):moment().subtract(30, 'days').format('L'));
             $('#datepicker2').datepicker('update', '#{dateTo}'?moment('#{dateTo}').format('L'):moment().format('L'));

@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-
+require('events').EventEmitter.defaultMaxListeners = Infinity;
 var app = require('../app').app;
 var debug = require('debug')('justpicksales:server');
 var http = require('http');
