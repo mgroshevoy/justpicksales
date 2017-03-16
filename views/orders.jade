@@ -30,7 +30,7 @@ block content
                     td #{order.sellingmanagernumber}
                     td #{order.id}
                     td #{order.order_status}
-                    td #{order.created_time.toLocaleDateString("en-US")}
+                    td #{new Date(order.created_time-3600 * 7 * 1000).toLocaleDateString("en-US")}
                     //td #{order.adj_amount}
                     //td #{order.paid_amount}
                     td
@@ -49,7 +49,7 @@ block content
                     //td #{order.payment_status}
                     td #{order.status}
                     if order.paid_time
-                        td #{order.paid_time.toLocaleDateString("en-US")}
+                        td #{new Date(order.paid_time-3600 * 7 * 1000).toLocaleDateString("en-US")}
                     else
                         td
                     td #{(Number(order.total) * 0.044).toFixed(2)}
