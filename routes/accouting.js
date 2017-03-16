@@ -58,9 +58,10 @@ router.get('/:dateFrom/:dateTo', function (req, res, next) {
     else dateFrom = moment().subtract(30, 'days').format('YYYY-MM-DD');
     if (moment(req.params.dateTo).isValid()) dateTo = moment(req.params.dateTo).format('YYYY-MM-DD');
     else dateTo = moment().format('YYYY-MM-DD');
+
     EbayModel
         .find()
-        .where('created_time').gte(dateFrom).lte(dateTo)
+        .where('created_time').gte(moment(dateFrom).startOf('day')).lte(moment(dateTo).endOf('day'))
         .sort('-created_time')
         .then(result => {
             var i, promises = [];
@@ -127,7 +128,7 @@ router.get('/', function (req, res, next) {
     addPrice(res);
     EbayModel
         .find()
-        .where('created_time').gte(moment().subtract(30, 'days').toISOString())
+        .where('created_time').gte(moment().subtract(30, 'days').startOf('day'))
         .sort('-created_time')
         .then(result => {
             var i, promises = [];
