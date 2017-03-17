@@ -66,8 +66,12 @@ block content
                         td #{order.amazon.total}
                         -sumAmazon += order.amazon.total
                     else if order.purchase !=null
-                        td #{order.purchase.amazonprice}
-                        -sumAmazon += order.purchase.amazonprice
+                        if order.purchase.amazonprice != 0
+                            td#amazontotal
+                                a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
+                            -sumAmazon += order.purchase.amazonprice
+                        else
+                            td#amazontotal
                     else if order.walmart === null
                         td#amazontotal
                             a#editable(href="#" data-type="text")
@@ -78,7 +82,8 @@ block content
                         -sumWalmart += order.walmart.total
                     else if order.purchase != null
                         if order.purchase.walmartprice != 0
-                            td #{order.purchase.walmartprice}
+                            td#walmarttotal
+                                a#editable(href="#" data-type="text") #{order.purchase.walmartprice}
                             -sumWalmart += order.purchase.walmartprice
                         else
                             td#walmarttotal
@@ -96,29 +101,30 @@ block content
                 if (!isNumeric(value) && value != '') {
                     return 'Value must be a float number!';
                 }
-                //if (value === '') {
-                //    $(this).parent().parent().find('#walmarttotal').html('<a href="#" data-type="text" data-value="" class="editable-click editable-empty">Empty</a>');
-                //    $(this).parent().parent().find('#amazontotal').html('<a href="#" data-type="text" data-value="" class="editable-click editable-empty">Empty</a>');
-                //}
-                switch ($(this).parent().attr('id')) {
-                    case 'amazontotal':
-                        $(this).parent().parent().find('#walmarttotal').html('');
-                        console.log(value);
-                        socket.emit('addPrice', {
-                            id: $(this).parent().parent().find('#id').text(),
-                            amazonprice: value,
-                            walmartprice: 0
-                        });
-                        break;
-                    case 'walmarttotal':
-                        $(this).parent().parent().find('#amazontotal').html('');
-                        console.log(value);
-                        socket.emit('addPrice', {
-                            id: $(this).parent().parent().find('#id').text(),
-                            amazonprice: 0,
-                            walmartprice: value
-                        });
-                        break;
+                console.info('Value = ' + value);
+                if (value === '' || value === 0) {
+                    socket.emit('deletePrice', {
+                        id: $(this).parent().parent().find('#id').text()
+                    })
+                } else {
+                    switch ($(this).parent().attr('id')) {
+                        case 'amazontotal':
+                            $(this).parent().parent().find('#walmarttotal').html('');
+                            socket.emit('addPrice', {
+                                id: $(this).parent().parent().find('#id').text(),
+                                amazonprice: value,
+                                walmartprice: 0
+                            });
+                            break;
+                        case 'walmarttotal':
+                            $(this).parent().parent().find('#amazontotal').html('');
+                            socket.emit('addPrice', {
+                                id: $(this).parent().parent().find('#id').text(),
+                                amazonprice: 0,
+                                walmartprice: value
+                            });
+                            break;
+                    }
                 }
             }
         });

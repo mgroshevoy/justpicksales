@@ -44,6 +44,12 @@ function addPrice(res) {
                     }
                 })
         });
+        socket.on('deletePrice', function (objPurchase) {
+            PurchaseModel.remove({id: objPurchase.id}, function (err) {
+                if(err) console.error('Internal error: %s', err.message);
+                else console.log('Purchase deleted');
+            })
+        });
         socket.on('disconnect', function(){
             console.log('user disconnected');
             socket.removeAllListeners();
