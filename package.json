@@ -26,6 +26,7 @@
     "nightmare-download-manager": "^0.2.2",
     "serve-favicon": "~2.3.0",
     "socket.io": "^1.7.3",
+    "socketio-file-upload": "^0.6.0",
     "vo": "^4.0.2"
   }
 }

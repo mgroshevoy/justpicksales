@@ -1,18 +1,26 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const moment = require('moment');
 const Nightmare = require('nightmare');
 const vo = require('vo');
 const WalmartModel = require('../libs/mongoose').WalmartModel;
-
+const siofu = require('socketio-file-upload');
+const loadCSV = require('../libs/filetools').loadCSV;
+const mkdirp = require('../libs/filetools').mkdirp;
+const isDir = require('../libs/filetools').isDir;
 
 var email = process.env.WALMART_EMAIL;
 var password = process.env.WALMART_PASS;
 var flag = false;
+
+if (!isDir('./files/walmartorders')) {
+    mkdirp('./files/walmartorders');
+}
+
+var csvDir = path.resolve('./files/walmartorders') || '';
 
 /**
  * Authentication on Walmart
@@ -168,25 +176,36 @@ function getWalmartOrdersUpdate(headers) {
  * GET Walmart orders page
  */
 router.get('/', function (req, res, next) {
-    if (!flag) {
-        res.io.on('connection', function (socket) {
-            if (!flag) {
-                socket.on('updateBegin', function (arrCookie) {
-                    var i, strCookie = '"';
-                    flag = true;
-                    console.log(arrCookie);
-                    for (i = 0; i < arrCookie.length; i++) {
-                        strCookie += arrCookie[i].name + '=' + arrCookie[i].value + '; ';
-                    }
-                    console.log(strCookie);
-                    getWalmartOrdersUpdate({'cookie': strCookie + '"'}).then(() => {
-                        res.io.emit('updateOver');
-                        flag = false;
-                    });
-                });
-            }
+    res.io.on('connection', function (socket) {
+        console.log('Socket connected');
+        const uploader = new siofu();
+        uploader.dir = './files/walmartorders';
+        uploader.listen(socket);
+        uploader.on("saved", function (event) {
+            console.log(event.file);
+            loadCSV(csvDir, event.file.name).then(result => {
+                console.log(result);
+                for (let i = 0; i < result.length; i++) {
+
+                }
+            })
         });
-    }
+        if (!flag) {
+            socket.on('updateBegin', function (arrCookie) {
+                var i, strCookie = '"';
+                flag = true;
+                console.log(arrCookie);
+                for (i = 0; i < arrCookie.length; i++) {
+                    strCookie += arrCookie[i].name + '=' + arrCookie[i].value + '; ';
+                }
+                console.log(strCookie);
+                getWalmartOrdersUpdate({'cookie': strCookie + '"'}).then(() => {
+                    res.io.emit('updateOver');
+                    flag = false;
+                });
+            });
+        }
+    });
     vo(function*() {
         return yield WalmartModel.find().sort('-date');
     })((err, result) => {

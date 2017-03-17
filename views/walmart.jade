@@ -1,9 +1,10 @@
 extends layout
 block content
     .row
-        .col-md-5
+        .col-md-4
             h1= title
-        .col-md-3
+        .col-md-4
+            input.btn.btn-default#siofu_input(type="file")
         .col-md-4
             span Updated:
             a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
@@ -56,6 +57,8 @@ block content
             alert('Error! Paste valid cookies, please!');
         });
         var socket = io();
+        var uploader = new SocketIOFileUpload(socket);
+        uploader.listenOnInput(document.getElementById("siofu_input"));
         var $body = $("body");
         socket.on('updateOver', function () {
             $body.removeClass("loading");

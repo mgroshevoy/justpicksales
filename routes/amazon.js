@@ -1,53 +1,27 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-var fs = require('fs');
-var path = require('path');
-var _ = require('lodash');
-var parse = require('csv-parse');
-var moment = require('moment');
-var Nightmare = require('nightmare');
+const path = require('path');
+const _ = require('lodash');
+const moment = require('moment');
+const Nightmare = require('nightmare');
 require('nightmare-download-manager')(Nightmare);
-var vo = require('vo');
-var AmazonModel = require('../libs/mongoose').AmazonModel;
-
+const vo = require('vo');
+const AmazonModel = require('../libs/mongoose').AmazonModel;
+const loadCSV = require('../libs/filetools').loadCSV;
+const mkdirp = require('../libs/filetools').mkdirp;
+const isDir = require('../libs/filetools').isDir;
 
 var email = process.env.AMAZON_EMAIL;
 var password = process.env.AMAZON_PASS;
 var objFile, flag = false;
 
 
-/**
- * Check if Dir exists
- * @param dpath String
- * @returns {boolean}
- */
-fs.isDir = function (dpath) {
-    try {
-        return fs.lstatSync(dpath).isDirectory();
-    } catch (e) {
-        console.log('Dir doesnt exist');
-        return false;
-    }
-};
-
-/**
- * Create Dir
- * @param dirname String
- */
-fs.mkdirp = function (dirname) {
-    dirname = path.normalize(dirname).split(path.sep);
-    dirname.forEach((sdir, index) => {
-        var pathInQuestion = dirname.slice(0, index + 1).join(path.sep);
-        if ((!fs.isDir(pathInQuestion)) && pathInQuestion) fs.mkdirSync(pathInQuestion);
-    });
-};
-
-if (!fs.isDir('./amazonorders')) {
-    fs.mkdirp('./amazonorders');
+if (!isDir('./files/amazonorders')) {
+    mkdirp('./files/amazonorders');
 }
 
-var csvDir = path.resolve('./amazonorders') || '';
+var csvDir = path.resolve('./files/amazonorders') || '';
 
 //console.log('CSV= ' + csvDir);
 //Order Date,Order ID,Title,Category,ASIN/ISBN,UNSPSC Code,Website,Release Date,Condition,Seller,Seller Credentials,List Price Per Unit,Purchase Price Per Unit,Quantity,Payment Instrument Type,Purchase Order Number,PO Line Number,Ordering Customer Email,Shipment Date,Shipping Address Name,Shipping //Address Street 1,Shipping Address Street 2,Shipping Address City,Shipping Address State,Shipping Address Zip,Order Status,Carrier Name & Tracking Number,Item Subtotal,Item Subtotal Tax,Item Total,Tax Exemption Applied,Tax Exemption Type,Exemption Opt-Out,Buyer Name,Currency,Group Name
@@ -59,7 +33,7 @@ var csvDir = path.resolve('./amazonorders') || '';
 function getAmazonOrders() {
     return new Promise(resolve => {
         if (isReportReady()) {
-            resolve(loadCSV(getMostRecentFileName(csvDir)));
+            resolve(loadCSV(csvDir, getMostRecentFileName(csvDir)));
         } else {
             var nightmare = new Nightmare({
                 openDevTools: {
@@ -96,7 +70,7 @@ function getAmazonOrders() {
                 .waitDownloadsComplete()
                 .end()
                 .then(function () {
-                    resolve(loadCSV(objFile.filename));
+                    resolve(loadCSV(csvDir, objFile.filename));
                 })
                 .catch(function (error) {
                     console.log(error);
@@ -107,36 +81,13 @@ function getAmazonOrders() {
 }
 
 /**
- * Load CSV file to Array
- * @param strFileName
- * @returns {Promise}
- */
-function loadCSV(strFileName) {
-    return new Promise((resolve, reject) => {
-        var parser = parse({
-            delimiter: ',',
-            columns: true
-        }, function (err, data) {
-            if (err) {
-                console.error(err);
-                resolve([{'Order ID': 'No data'}]);
-            }
-            console.log(path.join(csvDir, strFileName));
-            //console.log(data);
-            resolve(data);
-        });
-        fs.createReadStream(path.join(csvDir, strFileName)).pipe(parser);
-    });
-}
-
-/**
  * Check last report date
  * @returns {boolean}
  */
 function isReportReady() {
-    var lastFileName = getMostRecentFileName(csvDir);
+    let lastFileName = getMostRecentFileName(csvDir);
     if (lastFileName === null || lastFileName === '.gitkeep') return false;
-    var lastFileDate = fs.statSync(path.join(csvDir, lastFileName)).ctime;
+    let lastFileDate = fs.statSync(path.join(csvDir, lastFileName)).ctime;
     return moment().isSame(moment(lastFileDate), 'day');
 }
 

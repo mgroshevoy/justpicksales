@@ -102,7 +102,7 @@ block content
                     return 'Value must be a float number!';
                 }
                 console.info('Value = ' + value);
-                if (value === '' || value === 0) {
+                if (value === '' || value == 0) {
                     socket.emit('deletePrice', {
                         id: $(this).parent().parent().find('#id').text()
                     })
@@ -162,7 +162,7 @@ block content
         });
 
     p Orders: #{numOrders}
-    p TOTAL Profit: #{sumFee.toFixed(2)}
+    p TOTAL Fee: #{sumFee.toFixed(2)}
     p TOTAL Cancelled: #{sumCancelled.toFixed(2)}
     p TOTAL: #{sumTotal.toFixed(2)}
     p TOTAL Amazon+Walmart: #{(sumAmazon + sumWalmart).toFixed(2)}
