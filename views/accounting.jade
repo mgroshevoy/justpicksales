@@ -62,31 +62,32 @@ block content
                     td #{fee}
                     -sumFee += Number(fee)
                     //td #{order.address}
-                    if order.amazon != null
-                        td #{order.amazon.total}
-                        -sumAmazon += order.amazon.total
+                    if order.purchase != null
+                        td#amazontotal
+                            a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
+                        -sumAmazon += order.purchase.amazonprice
+                    else if order.amazon != null
+                        td#amazontotal
+                            a#editable(href="#" data-type="text") #{order.amazon.total}
+                            -sumAmazon += order.amazon.total
                     else if order.purchase !=null
-                        if order.purchase.amazonprice != 0
-                            td#amazontotal
-                                a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
-                            -sumAmazon += order.purchase.amazonprice
-                        else
-                            td#amazontotal
+                        td#amazontotal
+                            a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
+                        -sumAmazon += order.purchase.amazonprice
                     else if order.walmart === null
                         td#amazontotal
                             a#editable(href="#" data-type="text")
                     else
                         td#amazontotal
-                    if order.walmart != null
-                        td #{order.walmart.total}
+
+                    if order.purchase != null
+                        td#walmarttotal
+                            a#editable(href="#" data-type="text") #{order.purchase.walmartprice}
+                        -sumWalmart += order.purchase.walmartprice
+                    else if order.walmart != null
+                        td#walmarttotal
+                            a#editable(href="#" data-type="text") #{order.walmart.total}
                         -sumWalmart += order.walmart.total
-                    else if order.purchase != null
-                        if order.purchase.walmartprice != 0
-                            td#walmarttotal
-                                a#editable(href="#" data-type="text") #{order.purchase.walmartprice}
-                            -sumWalmart += order.purchase.walmartprice
-                        else
-                            td#walmarttotal
                     else if order.amazon === null
                         td#walmarttotal
                             a#editable(href="#" data-type="text")
@@ -97,6 +98,7 @@ block content
         $('#results a').editable({
             type: 'text',
             name: 'amount',
+            emptytext: '0',
             validate: function (value) {
                 if (!isNumeric(value) && value != '') {
                     return 'Value must be a float number!';
@@ -163,6 +165,7 @@ block content
 
     p Orders: #{numOrders}
     p TOTAL Fee: #{sumFee.toFixed(2)}
+    p TOTAL Profit: #{(sumTotal-sumFee-sumCancelled-sumAmazon-sumWalmart).toFixed(2)}
     p TOTAL Cancelled: #{sumCancelled.toFixed(2)}
     p TOTAL: #{sumTotal.toFixed(2)}
     p TOTAL Amazon+Walmart: #{(sumAmazon + sumWalmart).toFixed(2)}
