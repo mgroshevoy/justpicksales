@@ -6,6 +6,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const Nightmare = require('nightmare');
 const vo = require('vo');
+const fs = require('fs');
 const WalmartModel = require('../libs/mongoose').WalmartModel;
 const siofu = require('socketio-file-upload');
 const loadCSV = require('../libs/filetools').loadCSV;
@@ -95,8 +96,8 @@ function getOrderDetails(nightmare, url, headers) {
  */
 function saveOrder(result) {
     return new Promise((resolve) => {
-        var order;
         WalmartModel.findOne({id: result.id}, function (err, obj) {
+            let order;
             if (obj === null) {
                 order = new WalmartModel({
                     id: result.id,
@@ -177,21 +178,48 @@ function getWalmartOrdersUpdate(headers) {
  */
 router.get('/', function (req, res, next) {
     res.io.on('connection', function (socket) {
-        console.log('Socket connected');
         const uploader = new siofu();
-        uploader.dir = './files/walmartorders';
+        uploader.dir = csvDir;
         uploader.listen(socket);
         uploader.on("saved", function (event) {
             console.log(event.file);
             loadCSV(csvDir, event.file.name).then(result => {
+                let promises = [], numRec = 0;
                 console.log(result);
                 for (let i = 0; i < result.length; i++) {
-
+                    if (result[i]['Order #']) {
+                        promises.push(WalmartModel.findOne({id: result[i]['Order #']}, function (err, obj) {
+                            let order;
+                            console.log(obj);
+                            if (obj === null) {
+                                order = new WalmartModel({
+                                    id: result[i]['Order #'],
+                                    date: result[i]['Date'],
+                                    address: result[i]['Name+Address'],
+                                    total: result[i]['Order total']?Number(result[i]['Order total'].substr(1)):0
+                                });
+                                console.log(order);
+                                order.save(function (err) {
+                                    if (!err) {
+                                        console.info("Order saved!");
+                                        numRec++;
+                                    } else {
+                                        console.error('Internal error: %s', err.message);
+                                    }
+                                });
+                            }
+                        }));
+                    }
                 }
-            })
+                Promise.all(promises).then(() => {
+                    console.log('Import completed!');
+                    if (fs.existsSync(event.file.pathName)) fs.unlinkSync(event.file.pathName);
+                    socket.emit('walmartImportCompleted', numRec);
+                });
+            });
         });
         if (!flag) {
-            socket.on('updateBegin', function (arrCookie) {
+            socket.on('walmartUpdateBegin', function (arrCookie) {
                 var i, strCookie = '"';
                 flag = true;
                 console.log(arrCookie);
@@ -200,7 +228,7 @@ router.get('/', function (req, res, next) {
                 }
                 console.log(strCookie);
                 getWalmartOrdersUpdate({'cookie': strCookie + '"'}).then(() => {
-                    res.io.emit('updateOver');
+                    res.io.emit('walmartUpdateOver');
                     flag = false;
                 });
             });

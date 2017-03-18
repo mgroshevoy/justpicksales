@@ -1,13 +1,14 @@
 extends layout
 block content
     .row
-        .col-md-5
-            h1= title
-        .col-md-3
-            .captcha
         .col-md-4
-            span Updated:
-            a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
+            h1= title
+        .col-md-4
+            //.captcha
+        .col-md-4
+            input.btn.btn-default#siofu_input(type="file")
+            //span Updated:
+            //a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
             //form.form-inline
             //    input.form-control#textCaptcha(type="text")
             //    button.btn.btn-primary#buttonOK(type="submit") OK
@@ -34,14 +35,25 @@ block content
                     td #{order.shipping_name}, #{order.shipping_street1}, #{order.shipping_street2}, #{order.shipping_city}, #{order.shipping_state}, #{order.shipping_zip}
     .modalload
     script.
-        var socket = io();
         var $body = $("body");
-        socket.on('updateOver', function () {
+        var uploader = new SocketIOFileUpload(socket);
+        uploader.listenOnInput(document.getElementById("siofu_input"));
+        socket.on('amazonImportCompleted', function (numRec) {
+            $.notify({
+                // options
+                message: 'Import completed. Records imported: ' + numRec
+            }, {
+                // settings
+                type: 'success',
+                placement: {align: 'center'}
+            });
+        });
+        socket.on('amazonUpdateOver', function () {
             $body.removeClass("loading");
             console.log('Data is updated!');
             location.reload();
         });
         var updateData = function () {
             $body.addClass("loading");
-            socket.emit('updateBegin');
+            socket.emit('amazonUpdateBegin');
         }

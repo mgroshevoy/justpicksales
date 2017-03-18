@@ -4,10 +4,10 @@ block content
         .col-md-4
             h1= title
         .col-md-4
-            input.btn.btn-default#siofu_input(type="file")
         .col-md-4
-            span Updated:
-            a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
+            input.btn.btn-default#siofu_input(type="file")
+            //span Updated:
+            //a.btn.btn-default(onclick='updateData()') #{lastUpdate?lastUpdate.toLocaleString("en-US"):''}
     table.table.table-hover
         thead
             th Order ID:
@@ -50,17 +50,26 @@ block content
                 if (arr[i].name === 'customer') {
                     $("#cookiemodal").modal('hide');
                     $body.addClass("loading");
-                    socket.emit('updateBegin', arr);
+                    socket.emit('walmartUpdateBegin', arr);
                     return;
                 }
             }
             alert('Error! Paste valid cookies, please!');
         });
-        var socket = io();
         var uploader = new SocketIOFileUpload(socket);
         uploader.listenOnInput(document.getElementById("siofu_input"));
         var $body = $("body");
-        socket.on('updateOver', function () {
+        socket.on('walmartImportCompleted', function (numRec) {
+            $.notify({
+                // options
+                message: 'Import completed. Records imported: ' + numRec
+            }, {
+                // settings
+                type: 'success',
+                placement: {align: 'center'}
+            });
+        });
+        socket.on('walmartUpdateOver', function () {
             $body.removeClass("loading");
             console.log('Data is updated!');
             location.reload();

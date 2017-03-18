@@ -2,11 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const fs = require('fs');
 const _ = require('lodash');
 const moment = require('moment');
 const Nightmare = require('nightmare');
 require('nightmare-download-manager')(Nightmare);
 const vo = require('vo');
+const siofu = require('socketio-file-upload');
 const AmazonModel = require('../libs/mongoose').AmazonModel;
 const loadCSV = require('../libs/filetools').loadCSV;
 const mkdirp = require('../libs/filetools').mkdirp;
@@ -113,8 +115,8 @@ function getMostRecentFileName(dir) {
  */
 function saveOrder(order) {
     return new Promise((resolve) => {
-        var objOrder;
         AmazonModel.findOne({id: order['Order ID']}, function (err, obj) {
+            var objOrder;
             if (obj === null && order['Order ID'] != 'No data') {
                 objOrder = new AmazonModel({
                     id: order['Order ID'],
@@ -164,21 +166,87 @@ function saveOrder(order) {
  */
 router.get('/', function (req, res, next) {
     res.io.on('connection', function (socket) {
-        socket.on('updateBegin', function () {
-            if (!flag){
+        let uploader = new siofu();
+        uploader.dir = csvDir;
+        uploader.listen(socket);
+        uploader.on("saved", function (event) {
+            if (event.file.success) {
+                loadCSV(csvDir, event.file.name).then(result => {
+                    let promises = [], numRec = 0;
+                    //console.log(event.file);
+                    console.log(result.length);
+                    for (let i = 0; i < result.length; i++) {
+                        if (result[i]['Order ID']) {
+                            promises.push(AmazonModel.findOne({id: result[i]['Order ID']}, function (err, obj) {
+                                let order;
+                                if (obj === null) console.log(result[i]['Order ID']);
+                                if (obj === null) {
+                                    order = new AmazonModel({
+                                        id: result[i]['Order ID'],
+                                        date: result[i]['Or der Date'],
+                                        title: result[i]['Title'],
+                                        category: result[i]['Category'],
+                                        asin_isbn: result[i]['ASIN/ISBN'],
+                                        unspsc: result[i]['UNSPSC Code'],
+                                        condition: result[i]['Condition'],
+                                        seller: result[i]['Seller'],
+                                        list_price_unit: Number(result[i]['List Price Per Unit'].substr(1)),
+                                        purchase_price_unit: Number(result[i]['Purchase Price Per Unit'].substr(1)),
+                                        quantity: Number(result[i]['Quantity']),
+                                        payment_type: result[i]['Payment Instrument Type'],
+                                        customer_email: result[i]['Ordering Customer Email'],
+                                        shipment_date: result[i]['Shipment Date'],
+                                        shipping_name: result[i]['Shipping Address Name'],
+                                        shipping_street1: result[i]['Shipping Address Street 1'],
+                                        shipping_street2: result[i]['Shipping Address Street 2'],
+                                        shipping_city: result[i]['Shipping Address City'],
+                                        shipping_state: result[i]['Shipping Address State'],
+                                        shipping_zip: result[i]['Shipping Address Zip'],
+                                        order_status: result[i]['Order Status'],
+                                        tracking_number: result[i]['Carrier Name & Tracking Number'],
+                                        subtotal: Number(result[i]['Item Subtotal'].substr(1)),
+                                        subtotal_tax: Number(result[i]['Item Subtotal Tax'].substr(1)),
+                                        total: result[i]['Item Total'].substr(1),
+                                        buyer_name: result[i]['Buyer Name'],
+                                        currency: result[i]['Currency']
+                                    });
+                                    console.log(order);
+                                    order.save(function (err) {
+                                        if (!err) {
+                                            console.info("Order saved!");
+                                            numRec++;
+                                        } else {
+                                            console.error('Internal error: %s', err.message);
+                                        }
+                                    });
+                                }
+                            }));
+                        }
+                    }
+                    Promise.all(promises).then(() => {
+                        console.log('Import completed!');
+                        if (fs.existsSync(event.file.pathName)) fs.unlinkSync(event.file.pathName);
+                        socket.emit('amazonImportCompleted', numRec);
+                    });
+                });
+            }
+        });
+        socket.on('amazonUpdateBegin', function () {
+            if (!flag) {
                 flag = true;
                 getAmazonOrders().then(result => {
-                    return new Promise ((resolve) => {
+                    return new Promise((resolve) => {
                         var i, promises = [];
                         for (i = 0; i < result.length; i++) {
-                            promises.push(saveOrder(result[i]));
+                            if (result[i]['Order ID']) promises.push(saveOrder(result[i]));
                         }
                         Promise.all(promises);
-                        resolve (result);
+                        resolve(result);
                     });
                 }).then(() => {
-                    res.io.emit('updateOver');
+                    res.io.emit('amazonUpdateOver');
                     flag = false;
+                    uploader = null;
                 });
             }
         });
@@ -187,12 +255,12 @@ router.get('/', function (req, res, next) {
         return yield AmazonModel.find().sort('-date');
     })((err, result) => {
         vo(function*() {
-            return yield AmazonModel.find().limit(1).sort({$natural:-1});
-        }) ((error, lastRec) => {
+            return yield AmazonModel.find().limit(1).sort({$natural: -1});
+        })((error, lastRec) => {
             res.render('amazon', {
                 title: 'Amazon orders',
                 orders: result,
-                lastUpdate: lastRec[0] ? lastRec[0]._id.getTimestamp(): 'No updates'
+                lastUpdate: lastRec[0] ? lastRec[0]._id.getTimestamp() : 'No updates'
             });
         });
     });

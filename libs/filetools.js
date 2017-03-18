@@ -17,8 +17,8 @@ function loadCSV(strDir, strFileName) {
                 console.error(err);
                 resolve([{'Order ID': 'No data'}]);
             }
-            console.log(path.join(strDir, strFileName));
-            console.log(data);
+//            console.log(path.join(strDir, strFileName));
+//            console.log(data);
             resolve(data);
         });
         fs.createReadStream(path.join(strDir, strFileName)).pipe(parser);

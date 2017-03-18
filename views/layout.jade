@@ -14,9 +14,15 @@ html
         script(src='/javascripts/bootstrap.min.js')
         script(src='/javascripts/bootstrap-editable.min.js')
         script(src='/javascripts/bootstrap-datepicker.min.js')
+        script(src='/javascripts/bootstrap-notify.min.js')
         script(src='/javascripts/handlebars.min.js')
         script(src='/javascripts/jquery.jqplot.min.js')
         script(src='/javascripts/jqplot.pieRenderer.js')
+        script.
+            var socket = io.connect();
+            socket.on('error', function () {
+                socket.reconnect();
+            });
     body
         nav.navbar.navbar-default
             .navbar-header
