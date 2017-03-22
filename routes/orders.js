@@ -6,8 +6,8 @@ const _ = require('lodash');
 const moment = require('moment');
 const cheerio = require('cheerio');
 const axios = require('axios');
-var vo = require('vo');
-var EbayModel = require('../libs/mongoose').EbayModel;
+const vo = require('vo');
+const EbayModel = require('../libs/mongoose').EbayModel;
 
 
 let flag = false;

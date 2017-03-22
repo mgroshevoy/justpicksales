@@ -55,14 +55,19 @@ block content
                     td #{order.total}
                     -sumTotal += order.total
                     -fee = 0
-                    each item in order.items
-                        -fee += Number(item.FinalValueFee)
-                    -fee += (Number(order.total) * 0.044 + 0.3)
-                    -fee = fee.toFixed(2)
+                    if order.order_status != 'Cancelled'
+                        each item in order.items
+                            -fee += Number(item.FinalValueFee)
+                        -fee += (Number(order.total) * 0.044 + 0.3)
+                        -fee = fee.toFixed(2)
+                    else
+                        -fee = 0.3
                     td #{fee}
                     -sumFee += Number(fee)
                     //td #{order.address}
-                    if order.purchase != null
+                    if order.order_status == 'Cancelled'
+                        td#amazontotal
+                    else if order.purchase != null
                         td#amazontotal
                             a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
                         -sumAmazon += order.purchase.amazonprice
@@ -70,17 +75,15 @@ block content
                         td#amazontotal
                             a#editable(href="#" data-type="text") #{order.amazon.total}
                             -sumAmazon += order.amazon.total
-                    else if order.purchase !=null
-                        td#amazontotal
-                            a#editable(href="#" data-type="text") #{order.purchase.amazonprice}
-                        -sumAmazon += order.purchase.amazonprice
                     else if order.walmart === null
                         td#amazontotal
                             a#editable(href="#" data-type="text")
                     else
                         td#amazontotal
 
-                    if order.purchase != null
+                    if order.order_status == 'Cancelled'
+                        td#walmarttotal
+                    else if order.purchase != null
                         td#walmarttotal
                             a#editable(href="#" data-type="text") #{order.purchase.walmartprice}
                         -sumWalmart += order.purchase.walmartprice
@@ -142,25 +145,25 @@ block content
                     + moment($('#datepicker2').datepicker('getDate')).format('YYYY-MM-DD'));
             })
         });
-        $(document).ready(function () {
-            var plot1 = $.jqplot('pie1', [[['TOTAL', #{sumTotal}], ['Amazon TOTAL', #{sumAmazon}], ['Walmart TOTAL', #{sumWalmart}]]], {
-                gridPadding: {top: 0, bottom: 38, left: 0, right: 0},
-                seriesDefaults: {
-                    renderer: $.jqplot.PieRenderer,
-                    trendline: {show: false},
-                    rendererOptions: {padding: 8, showDataLabels: true}
-                },
-                legend: {
-                    show: true,
-                    placement: 'outside',
-                    rendererOptions: {
-                        numberRows: 1
-                    },
-                    location: 's',
-                    marginTop: '15px'
-                }
-            });
-        });
+        //$(document).ready(function () {
+        //    var plot1 = $.jqplot('pie1', [[['TOTAL', #{sumTotal}], ['Amazon TOTAL', #{sumAmazon}], ['Walmart TOTAL', #{sumWalmart}]]], {
+        //        gridPadding: {top: 0, bottom: 38, left: 0, right: 0},
+        //        seriesDefaults: {
+        //            renderer: $.jqplot.PieRenderer,
+        //            trendline: {show: false},
+        //            rendererOptions: {padding: 8, showDataLabels: true}
+        //        },
+        //        legend: {
+        //            show: true,
+        //            placement: 'outside',
+        //            rendererOptions: {
+        //                numberRows: 1
+        //            },
+        //            location: 's',
+        //            marginTop: '15px'
+        //        }
+        //    });
+        //});
 
     p Orders: #{numOrders}
     p TOTAL Fee: #{sumFee.toFixed(2)}

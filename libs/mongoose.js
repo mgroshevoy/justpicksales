@@ -1,20 +1,21 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
+
 mongoose.connect('mongodb://localhost/justpicksales');
-var db = mongoose.connection;
+const db = mongoose.connection;
 
 db.on('error', function (err) {
-    console.error('connection error:', err.message);
+    console.error('DB connection error:', err.message);
 });
 db.once('open', function callback() {
     console.info("Connected to DB!");
 });
 
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
 // Schemas
-var WalmartOrders = new Schema({
+const WalmartOrders = new Schema({
     id: {type: String, unique: true, required: true},
     date: Date,
     url: String,
@@ -22,7 +23,7 @@ var WalmartOrders = new Schema({
     total: Number
 });
 
-var AmazonOrders = new Schema({
+const AmazonOrders = new Schema({
     id: {type: String, unique: true, required: true},
     date: Date,
     title: String,
@@ -52,7 +53,7 @@ var AmazonOrders = new Schema({
     currency: String
 });
 
-var EbayOrders = new Schema({
+const EbayOrders = new Schema({
     id: {type: String, unique: true, required: true},
     created_time: Date,
     adj_amount: Number,
@@ -77,16 +78,16 @@ var EbayOrders = new Schema({
     }
 });
 
-var PurchasePrice = new Schema({
+const PurchasePrice = new Schema({
     id: {type: String, unique: true, required: true},
     amazonprice: Number,
     walmartprice: Number
 });
 
-var WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);
-var AmazonModel = mongoose.model('AmazonOrders', AmazonOrders);
-var EbayModel = mongoose.model('EbayOrders', EbayOrders);
-var PurchaseModel = mongoose.model('PurchasePrice', PurchasePrice);
+const WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);
+const AmazonModel = mongoose.model('AmazonOrders', AmazonOrders);
+const EbayModel = mongoose.model('EbayOrders', EbayOrders);
+const PurchaseModel = mongoose.model('PurchasePrice', PurchasePrice);
 
 module.exports.WalmartModel = WalmartModel;
 module.exports.AmazonModel = AmazonModel;
