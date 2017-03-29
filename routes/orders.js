@@ -206,10 +206,9 @@ function getOrdersFromEbay() {
  */
 function saveOrder(order) {
     return new Promise((resolve, reject) => {
-        var objOrder;
         EbayModel.findOne({id: order['OrderID']}, function (err, obj) {
             if (obj === null) {
-                objOrder = new EbayModel({
+                obj = new EbayModel({
                     id: order['OrderID'],
                     created_time: order['CreatedTime'],
                     adj_amount: order['AdjustmentAmount'],
@@ -233,16 +232,38 @@ function saveOrder(order) {
                         postal_code: order.Address.PostalCode
                     }
                 });
-                objOrder.save(function (err) {
-                    if (!err) {
-                        console.info("Order saved!");
-                    } else {
-                        console.error('Internal error: %s', err.message);
-                    }
-
-                });
+            } else {
+                obj.created_time = order['CreatedTime'];
+                obj.adj_amount = order['AdjustmentAmount'];
+                obj.paid_amount = order['AmountPaid'];
+                obj.items = order['Items'];
+                obj.order_status = order['OrderStatus'];
+                obj.payment_status = order['eBayPaymentStatus'];
+                obj.status = order['Status'];
+                obj.paid_time = order['PaidTime'];
+                obj.total = order['Total'];
+                obj.sellingmanagernumber = order['SellingManagerNumber'];
+                obj.address = {
+                    name: order.Address.Name,
+                        street1: order.Address.Street1,
+                        street2: order.Address.Street2,
+                        city: order.Address.CityName,
+                        state: order.Address.StateOrProvince,
+                        country: order.Address.Country,
+                        country_name: order.Address.CountryName,
+                        phone: order.Address.Phone,
+                        postal_code: order.Address.PostalCode
+                };
             }
-            resolve(obj);
+            obj.save(function (err) {
+                if (!err) {
+                    console.info("Order saved!");
+                    resolve(obj);
+                } else {
+                    console.error('Internal error: %s', err.message);
+                    reject('Internal error: ' + err.message);
+                }
+            });
         });
     })
 }

@@ -136,7 +136,7 @@ router.get('/', function (req, res, next) {
         .where('created_time').gte(moment().subtract(30, 'days').startOf('day').add(7, 'hours'))
         .sort('-created_time')
         .then(result => {
-            var i, promises = [];
+            let i, promises = [];
             for (i = 0; i < result.length; i++) {
                 promises.push(AmazonModel
                     .findOne({
