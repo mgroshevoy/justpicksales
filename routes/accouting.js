@@ -79,7 +79,7 @@ router.get('/:dateFrom/:dateTo', function (req, res, next) {
                         },
                         date: {
                             $gte: moment(result[i].created_time).startOf('day'),
-                            $lte: moment(result[i].created_time).startOf('day').add(3, 'days')
+                            $lte: moment(result[i].created_time).startOf('day').add(6, 'days')
                         },
                         shipping_zip: {
                             '$regex': result[i].address.postal_code.substr(0, 5),
@@ -101,7 +101,7 @@ router.get('/:dateFrom/:dateTo', function (req, res, next) {
                             },
                             date: {
                                 $gte: moment(result[i].created_time).startOf('day'),
-                                $lte: moment(result[i].created_time).startOf('day').add(3, 'days')
+                                $lte: moment(result[i].created_time).startOf('day').add(6, 'days')
                             }
                         }));
                 }
